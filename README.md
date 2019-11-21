@@ -10,12 +10,15 @@ Software para simular um servidor de arquivos ftp com utilização de python RPC
 # $ source ambiente/bin/activate
 
 # Para ativar o servidor de arquivos.
-# $ python3 servidor_arquivos.py
+# $ python3 src/arquivos.py
 
 # Para ativar o servidor de autenticação.
-# $ python3 servidor_autenticação.py
+# $ python3 src/autenticação.py
 
 # Para ativar o servidor de conexões.
-# $ python3 servidor_conexoes.py
+# $ python3 src/conexoes.py
 
 # Para ativar o cliente
+
+# Criar usuário ROOT. Para criar o usuário root deve-se executar o seguinte comando.
+# $ python3 src/autenticacao.py root password
