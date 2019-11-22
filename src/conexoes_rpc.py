@@ -8,10 +8,8 @@ class ServidorConexeosRPC(rpyc.Service):
     def help(self):
         print("Ajuda.")
         print("-c: Endereço do servidor de conexões.")
-        print("-d: Porta do servidor de conexões.")
-        print("-e: Endereço do servidor de arquivos.")
-        print("-f: Porta do servidor de arquivos.")
-        print("python3 src/conexoes_rpc.py -c IP -p d PORTA -e IP -f PORTA")
+        print("-f: Endereço do servidor de arquivos.")
+        print("python3 src/conexoes_rpc.py -c IP -f IP")
 
     # Abrea conexão com um servidor RPC (arquivos ou autenticação).
     def conectar(self, hostname, porta):
@@ -34,4 +32,3 @@ if __name__ == "__main__":
     servidor = ServidorConexeosRPC()
     conexao = servidor.conectar("localhost", "8002")
     print(servidor.removerArquivo(conexao, "home/root/diretorio"))
-    
