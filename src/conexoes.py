@@ -7,18 +7,18 @@ import threading
 
 # Importando módulos locais.
 
-def help():
-    print("Ajuda.")
-    print("-c: Endereço do servidor de conexões.")
-    print("-d: Porta do servidor de conexões.")
-    print("-e: Endereço do servidor de arquivos.")
-    print("-f: Porta do servidor de arquivos.")
-    print("python3 src/conexoes.py -c IP -p d PORTA -e IP -f PORTA")
-
 class ServidorConexoes():
 
-    def servidor():
+    def servidor(self):
         print("Olá.")
+    
+    def help(self):
+        print("Ajuda.")
+        print("-c: Endereço do servidor de conexões.")
+        print("-d: Porta do servidor de conexões.")
+        print("-e: Endereço do servidor de arquivos.")
+        print("-f: Porta do servidor de arquivos.")
+        print("python3 src/conexoes.py -c IP -p d PORTA -e IP -f PORTA")
 
 if __name__=='__main__':
     
