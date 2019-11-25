@@ -23,7 +23,7 @@ class ServidorConexoes():
                 print("Ola.")
             # Faz chamada de função de autenticação no servidor RPC de autenticação.
             elif comandos[0] == 'conectar':
-
+                conn_rpc = rpyc.connect(hostname, porta)
             # Solicita desconecção com o servidor de conexões.
             elif comandos[0] == 'disconectar':
                 conn[0].close()
