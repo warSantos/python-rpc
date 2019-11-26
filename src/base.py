@@ -15,4 +15,4 @@ def get_opt(texto, parametros, funcao_help):
         return dir_opts
     except getopt.GetoptError as err:
         print(str(err))
-        funcao_help()   
+        funcao_help()
