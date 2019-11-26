@@ -99,9 +99,13 @@ def menu(conn):
                     comandos.append(usuario.dir_corrente)
                 msg = ''
                 for param in comandos:
-                    if param.find(usuario.dir_padrao) != 0:
+                    # Se o usuário tentar listar o diretório de outro e não for o root.
+                    if param.find(usuario.dir_padrao) != 0 and \
+                        not usuario.grupo_root:
                         msg += param+": "
                         msg += "error: permissão negada.\n"
+                    # Se o usuário tentar lista um diretório que pertence a árvore de sua
+                    # home.
                     else:
                         msg += param+": \n\n"
                         msg += servidor_rpc_ftp.listarDiretorio(conn_rpc_ftp, param)+"\n"
