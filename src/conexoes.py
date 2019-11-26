@@ -45,6 +45,7 @@ def menu(conn):
                     usuario.login = comandos[0]
                     usuario.status = True
                     usuario.dir_corrente = 'home/'+comandos[0]
+                    usuario.dir_padrao = usuario.dir_corrente
                     break
                 else:
                     tentativas -= 1
@@ -98,8 +99,12 @@ def menu(conn):
                     comandos.append(usuario.dir_corrente)
                 msg = ''
                 for param in comandos:
-                    msg += param+": \n\n"
-                    msg += servidor_rpc_ftp.listarDiretorio(conn_rpc_ftp, param)+"\n"
+                    if param.find(usuario.dir_padrao) != 0:
+                        msg += param+": "
+                        msg += "error: permissão negada.\n"
+                    else:
+                        msg += param+": \n\n"
+                        msg += servidor_rpc_ftp.listarDiretorio(conn_rpc_ftp, param)+"\n"
                 conn.send(msg.encode())
             elif comandos[0] == 'quit':
                 print("quit.")
