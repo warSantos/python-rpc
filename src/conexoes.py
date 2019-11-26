@@ -6,7 +6,7 @@ from sys import argv
 from multiprocessing import Pool
 
 # Importando módulos locais.
-import user
+from user import User
 from base import get_opt
 from conexoes_rpc import ServidorConexeosRPC
 
@@ -15,15 +15,12 @@ def menu(conn):
 
     print("TODO: Iniciando servidor de escuta do cliente.", conn.getpeername())
     tentativas = 3
-    # Criando objeto de servidor de conexões rpc.
-    servidor_rpc = ServidorConexeosRPC()
-    # Conectando o servidor de arquivos.
-    conn_rpc = servidor_rpc.conectar("127.0.0.1", "8002")
+    # Criando objeto de servidor de conexões rpc com servidor de autenticação.
+    servidor_rpc_aut = ServidorConexeosRPC()
     # Criando usário.
-    usuario = user.User()
+    usuario = User()
     # Autenticando e criando objeto usuário:
     while True:
-
         data = conn.recv(1024)
         if not data:
             print("Cliente desconectado.", conn.getpeername())
@@ -35,13 +32,15 @@ def menu(conn):
             # Removendo o token de comando.
             comandos.pop(0)
             if len(comandos) != 2:
-                conn.send("Quantidade de parâmetros inválida.".encode())
+                r_json = json.dumps({"aceito": False, "mensagem": "Quantidade de parâmetros inválida."})
+                conn.send(r_json.encode())
             else:
-                resposta = json.loads(
-                    servidor_rpc.autenticar(comandos[0], comandos[1]))
+                r_json = servidor_rpc_aut.autenticar(comandos[0], comandos[1])
+                resposta = json.loads(r_json)
                 # Se a conexão foi realizada com sucesso.
                 if resposta['aceito']:
-                    conn.send(resposta['mensagem'].encode())
+                    # Retornando json com confirmação de autenticação.
+                    conn.send(r_json.encode())
                     # Configurando o usuário.
                     usuario.login = comandos[1]
                     usuario.status = True
@@ -50,19 +49,25 @@ def menu(conn):
                 else:
                     tentativas -= 1
                     if tentativas == 0:
-                        print(tentativas)
                         tentativas = 3
-                        msg = resposta['mensagem']+ \
+                        resposta['mensagem'] = resposta['mensagem']+ \
                             ' Número máximo de tentativas seguidas atingido.\n'+ \
                             ' Aguarde 5 segundos e tente novamente.\n'
-                        conn.send(msg.encode())
+                        r_json = json.dumps(resposta)
+                        conn.send(r_json.encode())
                         time.sleep(5)
                     else:
-                        conn.send(resposta['mensagem'].encode())
+                        conn.send(r_json.encode())
         else:
             print("Usuário ainda não autenticado.")
-            conn.send("Usuário ainda não autenticado.".encode())
-    
+            data_resposta = {}
+            data_resposta['aceito'] = False
+            data_resposta['mensagem'] = "Usuário ainda não autenticado."
+            conn.send(json.dumps(data_resposta).encode())
+
+    # Conectando o servidor de arquivos.
+    servidor_rpc_ftp =  ServidorConexeosRPC()
+    conn_rpc_ftp = servidor_rpc_ftp.conectar()
     # Menu de comandos.
     while True:
         data = conn.recv(1024)
@@ -91,7 +96,7 @@ def menu(conn):
                 msg = ''
                 for param in comandos:
                     msg += param+": \n\n"
-                    msg += servidor_rpc.listarDiretorio(conn_rpc, param)+"\n"
+                    msg += servidor_rpc_ftp.listarDiretorio(conn_rpc_ftp, param)+"\n"
                 conn.send(msg.encode())
             elif commandos[0] == 'quit':
                 print("quit.")

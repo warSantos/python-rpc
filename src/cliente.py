@@ -1,5 +1,7 @@
 import rpyc
+import json
 import socket
+from user import User
 from sys import argv, exit
 
 # Importando módulos locais.
@@ -14,13 +16,35 @@ class Cliente():
         
         # Abrindo conexão com o servidor.
         socket_con = Cliente().conectar(ip_servidor_con)
-        diretorio = '$ '
+        # Criando um usuário para conexão.
+        usuario = User()
+        # Enquanto o usuário não se auntenticar.
         while True:
-            texto = input(diretorio)
+            texto = input(usuario.dir_corrente)
             socket_con.send(texto.encode())
             data = socket_con.recv(1024)
             if not data:
                 print("Conexão fechada pelo servidor.")
+                exit(1)
+            resposta = json.loads(data)
+            # Se o usuário foi autenticado.
+            if resposta['aceito']:
+                cmd, login, _ = texto.split()
+                usuario.status = resposta['aceito']
+                usuario.login = login
+                usuario.dir_corrente = 'home/'+login
+                break
+            else:
+                print(resposta['mensagem'])
+        
+        while True:
+            prefixo = usuario.login+'@server:~/'+usuario.dir_corrente+'$ '
+            texto = input(prefixo)
+            socket_con.send(texto.encode())
+            data = socket_con.recv(1024)
+            if not data:
+                print("Conexão fechada pelo servidor.")
+                exit(1)
             print(data.decode())
         socket_con.close()
 

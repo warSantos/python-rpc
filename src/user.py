@@ -4,7 +4,7 @@ class User():
 	status = False
 	dir_corrente='$ '
 
-	def __init__(login='user', status=False, dir_corrente='$ '):
+	def __init__(self, login='user', status=False, dir_corrente='$ '):
 
 		self.login = login
 		self.status=status

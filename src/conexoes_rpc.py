@@ -13,13 +13,15 @@ class ServidorConexeosRPC(rpyc.Service):
         print("python3 src/conexoes_rpc.py -c IP -f IP")
 
     # Auntentica usuário no servidor de autenticação.
-    def autenticar(self, login, senha):
+    def autenticar(self, login, senha, hostname="127.0.0.1", porta=8002):
         resumo = hashlib.sha256(senha.encode()).hexdigest()
-        conexao = ServidorConexeosRPC().conectar("127.0.0.1", "8002")
+        conexao = ServidorConexeosRPC().conectar(hostname, porta)
         return conexao.root.autenticar(login, resumo)
 
     # Abrea conexão com um servidor RPC (arquivos ou autenticação).
-    def conectar(self, hostname, porta):
+    # Por padrão esta definido a porta utilizada pelo servidor de arquivos
+    # em testes com uma máquina apenas.
+    def conectar(self, hostname="127.0.0.1", porta=8001):
         return rpyc.connect(hostname, porta)
     
     # Lista os diretórios fazendo conexão com o servidor de arquivos.
