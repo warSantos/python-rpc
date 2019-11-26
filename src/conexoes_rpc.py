@@ -1,5 +1,6 @@
 import re
 import rpyc
+import hashlib
 from base import get_opt
 from sys import argv, exit
 
@@ -10,6 +11,12 @@ class ServidorConexeosRPC(rpyc.Service):
         print("-c: Endereço do servidor de conexões.")
         print("-f: Endereço do servidor de arquivos.")
         print("python3 src/conexoes_rpc.py -c IP -f IP")
+
+    # Auntentica usuário no servidor de autenticação.
+    def autenticar(self, login, senha):
+        resumo = hashlib.sha256(senha.encode()).hexdigest()
+        conexao = ServidorConexeosRPC().conectar("127.0.0.1", "8002")
+        return conexao.root.autenticar(login, resumo)
 
     # Abrea conexão com um servidor RPC (arquivos ou autenticação).
     def conectar(self, hostname, porta):
