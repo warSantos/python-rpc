@@ -42,9 +42,9 @@ def menu(conn):
                     # Retornando json com confirmação de autenticação.
                     conn.send(r_json.encode())
                     # Configurando o usuário.
-                    usuario.login = comandos[1]
+                    usuario.login = comandos[0]
                     usuario.status = True
-                    usuario.dir_corrente = 'home/'+comandos[1]
+                    usuario.dir_corrente = 'home/'+comandos[0]
                     break
                 else:
                     tentativas -= 1
@@ -93,12 +93,15 @@ def menu(conn):
             elif comandos[0] == 'ls':
                 # Removendo o comandos ls.
                 comandos.pop(0)
+                # Se não foi informado o arquivo ou diretório a ser listado.
+                if len(comandos) == 0:
+                    comandos.append(usuario.dir_corrente)
                 msg = ''
                 for param in comandos:
                     msg += param+": \n\n"
                     msg += servidor_rpc_ftp.listarDiretorio(conn_rpc_ftp, param)+"\n"
                 conn.send(msg.encode())
-            elif commandos[0] == 'quit':
+            elif comandos[0] == 'quit':
                 print("quit.")
                 conn.close()
             # Faz chamada de função do put no servidor de RPC de arquivos.
