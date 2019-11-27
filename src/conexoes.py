@@ -11,125 +11,149 @@ from base import get_opt
 from conexoes_rpc import ServidorConexeosRPC
 
 
-def menu(conn):
+class ServidorConexoes():
 
-    print("TODO: Iniciando servidor de escuta do cliente.", conn.getpeername())
-    tentativas = 3
-    # Criando objeto de servidor de conexões rpc com servidor de autenticação.
-    servidor_rpc_aut = ServidorConexeosRPC()
-    # Criando usário.
-    usuario = User()
-    # Autenticando e criando objeto usuário:
-    while True:
-        data = conn.recv(1024)
-        if not data:
-            print("Cliente desconectado.", conn.getpeername())
-            conn.close()
-            return
-        texto = data.decode()
-        comandos = texto.split()
-        if comandos[0] == 'login':
-            # Removendo o token de comando.
-            comandos.pop(0)
-            if len(comandos) != 2:
-                r_json = json.dumps({"aceito": False, "mensagem": "Quantidade de parâmetros inválida."})
-                conn.send(r_json.encode())
-            else:
-                r_json = servidor_rpc_aut.autenticar(comandos[0], comandos[1])
-                resposta = json.loads(r_json)
-                # Se a conexão foi realizada com sucesso.
-                if resposta['aceito']:
-                    # Retornando json com confirmação de autenticação.
-                    conn.send(r_json.encode())
-                    # Configurando o usuário.
-                    usuario.login = comandos[0]
-                    usuario.status = True
-                    usuario.dir_corrente = 'home/'+comandos[0]
-                    usuario.dir_padrao = usuario.dir_corrente
-                    break
-                else:
-                    tentativas -= 1
-                    if tentativas == 0:
-                        tentativas = 3
-                        resposta['mensagem'] = resposta['mensagem']+ \
-                            ' Número máximo de tentativas seguidas atingido.\n'+ \
-                            ' Aguarde 5 segundos e tente novamente.\n'
-                        r_json = json.dumps(resposta)
+    def auntenticar(self, conn):
+
+        try:
+            tentativas = 3
+            # Criando objeto de servidor de conexões rpc com servidor de autenticação.
+            servidor_rpc_aut = ServidorConexeosRPC()
+            # Criando usário.
+            usuario = User()
+            # Autenticando e criando objeto usuário:
+            while True:
+                data = conn.recv(1024)
+                if not data:
+                    print("Cliente desconectado.", conn.getpeername())
+                    conn.close()
+                    exit(1)
+                texto = data.decode()
+                comandos = texto.split()
+                if comandos[0] == 'login':
+                    # Removendo o token de comando.
+                    comandos.pop(0)
+                    if len(comandos) != 2:
+                        r_json = json.dumps(
+                            {"aceito": False, "mensagem": "Quantidade de parâmetros inválida."})
                         conn.send(r_json.encode())
-                        time.sleep(5)
                     else:
-                        conn.send(r_json.encode())
-        else:
-            print("Usuário ainda não autenticado.")
-            data_resposta = {}
-            data_resposta['aceito'] = False
-            data_resposta['mensagem'] = "Usuário ainda não autenticado."
-            conn.send(json.dumps(data_resposta).encode())
+                        r_json = servidor_rpc_aut.autenticar(
+                            comandos[0], comandos[1])
+                        resposta = json.loads(r_json)
+                        # Se a conexão foi realizada com sucesso.
+                        if resposta['aceito']:
+                            # Retornando json com confirmação de autenticação.
+                            conn.send(r_json.encode())
+                            # Configurando o usuário.
+                            usuario.login = comandos[0]
+                            usuario.status = True
+                            usuario.dir_corrente = 'home/'+comandos[0]
+                            usuario.dir_padrao = usuario.dir_corrente
+                            break
+                        else:
+                            tentativas -= 1
+                            if tentativas == 0:
+                                tentativas = 3
+                                resposta['mensagem'] = resposta['mensagem'] + \
+                                    ' Número máximo de tentativas seguidas atingido.\n' + \
+                                    ' Aguarde 5 segundos e tente novamente.\n'
+                                r_json = json.dumps(resposta)
+                                conn.send(r_json.encode())
+                                time.sleep(5)
+                            else:
+                                conn.send(r_json.encode())
+                else:
+                    print("Usuário ainda não autenticado.")
+                    data_resposta = {}
+                    data_resposta['aceito'] = False
+                    data_resposta['mensagem'] = "Usuário ainda não autenticado."
+                    conn.send(json.dumps(data_resposta).encode())
+            return usuario
+        except Exception as err:
+            print(str(err))
+            exit(1)
 
-    # Conectando o servidor de arquivos.
-    servidor_rpc_ftp =  ServidorConexeosRPC()
-    conn_rpc_ftp = servidor_rpc_ftp.conectar()
-    # Menu de comandos.
-    while True:
-        data = conn.recv(1024)
-        if not data:
-            print("Cliente desconectado.", conn.getpeername())
-            conn.close()
-            return
-        else:
-            texto = data.decode()
-            comandos = texto.split()
-            # Faz chamada de função do cd no servidor de RPC de arquivos.
-            if comandos[0] == 'cd':
-                print("Ola.")
-            # Solicita desconecção com o servidor de conexões.
-            elif comandos[0] == 'disconectar':
+    def ls(self, conn, usuario, servidor_rpc_ftp, conn_rpc_ftp, comandos):
+        try:
+            # Removendo o comandos ls.
+            comandos.pop(0)
+            # Se não foi informado o arquivo ou diretório a ser listado.
+            if len(comandos) == 0:
+                comandos.append(usuario.dir_corrente)
+            msg = ''
+            for param in comandos:
+                # Se o usuário tentar listar o diretório de outro e não for o root.
+                if param.find(usuario.dir_padrao) != 0 and \
+                        not usuario.grupo_root:
+                    msg += param+": "
+                    msg += "error: permissão negada.\n"
+                # Se o usuário tentar lista um diretório que pertence a árvore de sua
+                # home.
+                else:
+                    msg += param+": \n\n"
+                    msg += servidor_rpc_ftp.listarDiretorio(
+                        conn_rpc_ftp, param)+"\n"
+            # Configurando JSON para envio.
+            data = {}
+            data['comando'] = 'ls'
+            data['conteudo'] = msg
+            conn.send(json.dumps(data).encode())
+        except Exception as err:
+            print(str(err))
+            exit(1)
+
+    def menu(self, conn):
+
+        print("TODO: Iniciando servidor de escuta do cliente.", conn.getpeername())
+        servidor = ServidorConexoes() 
+        # Autenticando o usuário.
+        usuario = servidor.auntenticar(conn)
+        # Conectando o servidor de arquivos.
+        servidor_rpc_ftp = ServidorConexeosRPC()
+        conn_rpc_ftp = servidor_rpc_ftp.conectar()
+        # Menu de comandos.
+        while True:
+            data = conn.recv(1024)
+            if not data:
                 print("Cliente desconectado.", conn.getpeername())
                 conn.close()
-                return
-            # Faz chamada de função do get no servidor de RPC de arquivos.
-            elif comandos[0] == 'get':
-                print("Ola.")
-            # Faz chamada de função do ls no servidor de RPC de arquivos.
-            elif comandos[0] == 'ls':
-                # Removendo o comandos ls.
-                comandos.pop(0)
-                # Se não foi informado o arquivo ou diretório a ser listado.
-                if len(comandos) == 0:
-                    comandos.append(usuario.dir_corrente)
-                msg = ''
-                for param in comandos:
-                    # Se o usuário tentar listar o diretório de outro e não for o root.
-                    if param.find(usuario.dir_padrao) != 0 and \
-                        not usuario.grupo_root:
-                        msg += param+": "
-                        msg += "error: permissão negada.\n"
-                    # Se o usuário tentar lista um diretório que pertence a árvore de sua
-                    # home.
-                    else:
-                        msg += param+": \n\n"
-                        msg += servidor_rpc_ftp.listarDiretorio(conn_rpc_ftp, param)+"\n"
-                conn.send(msg.encode())
-            elif comandos[0] == 'quit':
-                print("quit.")
-                conn.close()
-            # Faz chamada de função do put no servidor de RPC de arquivos.
-            elif comandos[0] == 'put':
-                print("Ola.")
-            # Faz chamada de função do rm no servidor de RPC de arquivos.
-            elif comandos[0] == 'rm':
-                print("Ola.")
-            # Faz chamada de função do rmdir no servidor de RPC de arquivos.
-            elif comandos[0] == 'rmdir':
-                print("Ola.")
-            # Retorna erro (comando não encontrado).
+                exit(1)
             else:
-                print("error: comando "+comandos[0]+" não encontrado.")
-                msg = "error: comando "+comandos[0]+" não encontrado."
-                conn.send(msg.encode())
-
-
-class ServidorConexoes():
+                texto = data.decode()
+                comandos = texto.split()
+                # Faz chamada de função do cd no servidor de RPC de arquivos.
+                if comandos[0] == 'cd':
+                    print("Ola.")
+                # Solicita desconecção com o servidor de conexões.
+                elif comandos[0] == 'disconectar':
+                    print("Cliente desconectado.", conn.getpeername())
+                    conn.close()
+                    return
+                # Faz chamada de função do get no servidor de RPC de arquivos.
+                elif comandos[0] == 'get':
+                    print("Ola.")
+                # Faz chamada de função do ls no servidor de RPC de arquivos.
+                elif comandos[0] == 'ls':
+                    servidor.ls(conn, usuario, servidor_rpc_ftp, \
+                        conn_rpc_ftp, comandos)
+                elif comandos[0] == 'quit':
+                    print("quit.")
+                    conn.close()
+                # Faz chamada de função do put no servidor de RPC de arquivos.
+                elif comandos[0] == 'put':
+                    print("Ola.")
+                # Faz chamada de função do rm no servidor de RPC de arquivos.
+                elif comandos[0] == 'rm':
+                    print("Ola.")
+                # Faz chamada de função do rmdir no servidor de RPC de arquivos.
+                elif comandos[0] == 'rmdir':
+                    print("Ola.")
+                # Retorna erro (comando não encontrado).
+                else:
+                    print("error: comando "+comandos[0]+" não encontrado.")
+                    msg = "error: comando "+comandos[0]+" não encontrado."
+                    conn.send(msg.encode())
 
     def iniciarServidor(self, ip_servidor_con, ip_servidor_ftp):
 
@@ -156,7 +180,7 @@ class ServidorConexoes():
             print("Servidor na escuta...")
             socket_cliente, addr = socket_conexao.accept()
             # Inicia uma nova thread para atender o novo cliente.
-            res = pool_clientes.apply_async(menu, (socket_cliente,))
+            res = pool_clientes.apply_async(self.menu, (socket_cliente,))
             resultados.append(res)
 
         # Fechando socket de escuta.

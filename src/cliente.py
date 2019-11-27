@@ -45,7 +45,34 @@ class Cliente():
             if not data:
                 print("Conexão fechada pelo servidor.")
                 exit(1)
-            print(data.decode())
+            # Lendo retorno do servidor.
+            retorno = json.loads(data.decode())
+            # Interpreta o retorno do comando cd.
+            if retorno['comando'] == 'cd':
+                print("Ola.")
+            # Interpreta o retorno do comando disconectar 
+            # (vê se o server fechou também).
+            elif retorno['comando'] == 'disconectar':
+                print("Ola.")
+                exit
+            # Interpreta o retorno do comando get.
+            elif retorno['comando'] == 'get':
+                print("Ola.")
+            # Interpreta o retorno do comando ls.
+            elif retorno['comando'] == 'ls':
+                print(retorno['conteudo'])
+            # Interpreta o retorno do comando put.
+            elif retorno['comando'] == 'put':
+                print("Ola.")
+            # Interpreta o retorno do comando rm.
+            elif retorno['comando'] == 'rm':
+                print("Ola.")
+            # Interpreta o retorno do comando rmdir.
+            elif retorno['comando'] == 'rmdir':
+                print("Ola.")
+            # Trata entrada de comandos inexistentes.
+            else:
+                print("Ola.")
         socket_con.close()
 
     def conectar(self, ip_servidor_con):
