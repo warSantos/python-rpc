@@ -15,11 +15,42 @@ class ServidorArquivos(rpyc.Service):
         else:
             return ("O diretório: "+homedir+" já existe.")
 
-    def exposed_listarDiretorio(self, caminho):
+    def exposed_cd(self, caminho, dir_corrente):
 
+        data = {}
+        # Se o arquivo existir e for um diretório.
+        if os.path.exists(caminho):
+            if os.path.isdir(caminho):
+                data['sucesso'] = True
+                # Verificando se o diretório é o ..
+                tokens = caminho.split("/")
+                # Se o usuário entrar no diretório corrente.
+                if tokens[-1] == '.':
+                    data['mensagem'] = dir_corrente
+                # Se o usuário entrar no diretório anterior.
+                elif tokens[-1] == '..':
+                    data['mensagem'] = '/'.join(tokens.pop())
+                # Se o usuário avançar na árvore de diretórios.
+                else:
+                    data['mensagem'] = caminho
+                return data
+            else:
+                data['sucesso'] = False
+                data['mensagem'] = "bash: cd: "+caminho+": Não é um diretório"
+                return data
+        else:
+            data['sucesso'] = False
+            data['mensagem'] = "bash: cd: "+caminho+": Arquivo ou diretório inexistente"
+            return data
+
+    def exposed_listarDiretorio(self, caminho, dir_corrente):
+
+        # Verificando se o caminho é .
+        if caminho == '.':
+            caminho = dir_corrente
         # Se o arquivo ou diretório existir.
         if os.path.exists(caminho):
-            if os.path.isdir(caminho):    
+            if os.path.isdir(caminho):
                 content = os.listdir(caminho)
                 content.sort()
                 return '\n'.join(content)

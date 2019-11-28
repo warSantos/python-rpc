@@ -7,7 +7,7 @@ from multiprocessing import Pool
 
 # Importando módulos locais.
 from user import User
-from base import get_opt
+from base import get_opt, regex_dir
 from conexoes_rpc import ServidorConexeosRPC
 
 
@@ -80,20 +80,30 @@ class ServidorConexoes():
             comandos.pop(0)
             # Se não foi informado o arquivo ou diretório a ser listado.
             if len(comandos) == 0:
-                comandos.append(usuario.dir_corrente)
+                comandos.append('.')
             msg = ''
             for param in comandos:
-                # Se o usuário tentar listar o diretório de outro e não for o root.
-                if param.find(usuario.dir_padrao) != 0 and \
-                        not usuario.grupo_root:
-                    msg += param+": "
+                # Removendo entradas indevidas para diretórios anteriores.
+                tokens = param.split('/')
+                i = 0
+                while i < len(tokens) \
+                    and (tokens[i] == '.' or tokens[i] == '..'):
+                    tokens.pop(0)
+                    i += 1
+                diretorio = '/'.join(tokens)
+                if diretorio.find(usuario.dir_padrao) != 0:
+                    diretorio = usuario.dir_padrao+'/'+diretorio
+                # Se o usuário tentar listar o diretório de outro, não for o root
+                # ou tentar voltar na árvore do sistema.
+                if not usuario.grupo_root and regex_dir(diretorio):
+                    msg += diretorio+": "
                     msg += "error: permissão negada.\n"
                 # Se o usuário tentar lista um diretório que pertence a árvore de sua
                 # home.
                 else:
-                    msg += param+": \n\n"
-                    msg += servidor_rpc_ftp.listarDiretorio(
-                        conn_rpc_ftp, param)+"\n"
+                    msg += diretorio+": \n\n"
+                    msg += servidor_rpc_ftp.listarDiretorio(conn_rpc_ftp, \
+                        diretorio, usuario.dir_corrente)+"\n"
             # Configurando JSON para envio.
             data = {}
             data['comando'] = 'ls'
@@ -103,6 +113,37 @@ class ServidorConexoes():
             print(str(err))
             exit(1)
 
+    def cd(self, conn, usuario, servidor_rpc_ftp, conn_rpc_ftp, comandos):
+
+        try:
+            retorno = {}
+            # Removendo o comandos ls.
+            comandos.pop(0)
+            # Se não foi informado o arquivo ou diretório a ser listado.
+            if len(comandos) == 0:
+                comandos.append(usuario.dir_padrao)
+            # Se a quantidade de parâmetros estiver correta.
+            if len(comandos) == 1:
+                data = servidor_rpc_ftp.cd(conn_rpc_ftp, comandos[1])
+                # Se o diretório existe e ocorreu sucesso no comando
+                if data["sucesso"]:
+                    # Se estiver aprofundando na árvore ou 
+                    # Se estiver retornando na árvore.
+                    # atualize o diretório corrente dele.
+                    if len(data['mensagem']) > len(usuario.dir_corrente) or \
+                        len(data['mensagem']) < len(usuario.dir_corrente):
+                        usuario.dir_corrente = data['mensagem']
+                data['comando'] = 'cd'
+                return json.dumps(data)
+            else:
+                data = {}
+                data['comando'] = 'cd'
+                data['sucesso'] = False
+                data['mensagem'] = "bash: cd: número excessivo de argumentos"
+                return json.dumps(data)
+        except Exception as err:
+            print(str(err))
+            exit(1)
     def menu(self, conn):
 
         print("TODO: Iniciando servidor de escuta do cliente.", conn.getpeername())
@@ -124,7 +165,8 @@ class ServidorConexoes():
                 comandos = texto.split()
                 # Faz chamada de função do cd no servidor de RPC de arquivos.
                 if comandos[0] == 'cd':
-                    print("Ola.")
+                    servidor.cd(conn, usuario, servidor_rpc_ftp, \
+                        conn_rpc_ftp, comandos)
                 # Solicita desconecção com o servidor de conexões.
                 elif comandos[0] == 'disconectar':
                     print("Cliente desconectado.", conn.getpeername())

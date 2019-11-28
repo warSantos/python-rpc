@@ -26,16 +26,16 @@ class Cliente():
             if not data:
                 print("Conexão fechada pelo servidor.")
                 exit(1)
-            resposta = json.loads(data)
+            retorno = json.loads(data)
             # Se o usuário foi autenticado.
-            if resposta['aceito']:
+            if retorno['aceito']:
                 cmd, login, _ = texto.split()
-                usuario.status = resposta['aceito']
+                usuario.status = retorno['aceito']
                 usuario.login = login
                 usuario.dir_corrente = 'home/'+login
                 break
             else:
-                print(resposta['mensagem'])
+                print(retorno['mensagem'])
         
         while True:
             prefixo = usuario.login+'@server:~/'+usuario.dir_corrente+'$ '
@@ -49,12 +49,15 @@ class Cliente():
             retorno = json.loads(data.decode())
             # Interpreta o retorno do comando cd.
             if retorno['comando'] == 'cd':
-                print("Ola.")
+                if retorno['sucesso']:
+                    usuario.dir_corrente = retorno['mensagem']
+                else:
+                    print(retorno['mensagem'])
             # Interpreta o retorno do comando disconectar 
             # (vê se o server fechou também).
             elif retorno['comando'] == 'disconectar':
                 print("Ola.")
-                exit
+                exit(0)
             # Interpreta o retorno do comando get.
             elif retorno['comando'] == 'get':
                 print("Ola.")

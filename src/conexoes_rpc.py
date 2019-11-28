@@ -24,9 +24,13 @@ class ServidorConexeosRPC(rpyc.Service):
     def conectar(self, hostname="127.0.0.1", porta=8001):
         return rpyc.connect(hostname, porta)
     
+    # Navega entre os diretórios do usuário.
+    def cd(self, conexao, caminho, dir_corrente):
+        return conexao.root.cd(caminho, dir_corrente)
+
     # Lista os diretórios fazendo conexão com o servidor de arquivos.
-    def listarDiretorio(self, conexao, caminho):
-        return conexao.root.listarDiretorio(caminho)
+    def listarDiretorio(self, conexao, caminho, dir_corrente):
+        return conexao.root.listarDiretorio(caminho, dir_corrente)
     
     def criarDiretorio(self, conexao, caminho):
         return conexao.root.criarDiretorio(caminho)

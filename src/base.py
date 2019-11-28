@@ -16,3 +16,22 @@ def get_opt(texto, parametros, funcao_help):
     except getopt.GetoptError as err:
         print(str(err))
         funcao_help()
+
+def regex_dir(caminho):
+
+    retornos = 2
+    avancos = 0
+    tokens = caminho.split('/')
+
+    # Contabilizando os ..
+    for t in tokens:
+        if t == '..':
+            retornos += 1
+        else:
+            avancos += 1
+    
+    # Se o caminho retorna mais na árvore que avança.
+    if retornos > avancos:
+        return True
+    else:
+        return False
