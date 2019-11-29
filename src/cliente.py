@@ -39,6 +39,11 @@ class Cliente():
             else:
                 print(retorno['mensagem'])
         
+        # Recebendo dados do CD inicial no servidor.
+        data = socket_con.recv(1024)
+        retorno = json.loads(data.decode())
+        usuario.dir_corrente = retorno['mensagem']
+        
         while True:
             prefixo = usuario.login+'@server:~'+usuario.dir_corrente+'$ '
             texto = input(prefixo)
@@ -49,10 +54,12 @@ class Cliente():
                 exit(1)
             # Lendo retorno do servidor.
             retorno = json.loads(data.decode())
+            print(data)
             # Interpreta o retorno do comando cd.
             if retorno['comando'] == 'cd':
                 if retorno['sucesso']:
                     usuario.dir_corrente = retorno['mensagem']
+                    print("NOVO DIR: ", usuario.dir_corrente)
                 else:
                     print(retorno['mensagem'])
             # Interpreta o retorno do comando disconectar 
@@ -78,6 +85,7 @@ class Cliente():
             # Trata entrada de comandos inexistentes.
             else:
                 print("Ola.")
+            # Atualizando o caminho no barra.
         socket_con.close()
 
     def conectar(self, ip_servidor_con):

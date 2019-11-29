@@ -1,6 +1,5 @@
 import os
 import getopt
-from user import User
 from sys import argv, exit
 
 def get_opt(texto, parametros, funcao_help):
@@ -19,10 +18,8 @@ def get_opt(texto, parametros, funcao_help):
         print(str(err))
         funcao_help()
 
-def permissao_acesso(caminho, usuario_info):
+def permissao_acesso(caminho, usuario):
 
-    usuario = User().json_loads(usuario_info)
-    print(usuario.dir_padrao)
     # Se o usuário tiver poder de root.
     if usuario.grupo_root:
         return True
@@ -31,11 +28,14 @@ def permissao_acesso(caminho, usuario_info):
     bkp_dir = os.getcwd()
     # Alterando o caminho para o novo diretório.
     os.chdir(caminho)
+    print("Autenticação: ", os.getcwd())
     # Pegando o novo diretório.
     novo_dir = os.getcwd()
     # Retornando para o diretório anterior ao CD.
     os.chdir(bkp_dir)
     # Se o usuário não saiu de sua home.
+    print("DIR padrão: ", usuario.dir_padrao)
+    print("NOVO dir: ", novo_dir)
     if novo_dir.find(usuario.dir_padrao) == 0:
-        return False
-    return True
+        return True
+    return False

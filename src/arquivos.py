@@ -1,6 +1,7 @@
 import os
 import json
 import rpyc
+from user import User
 from sys import argv, exit
 
 # Importando módulos locais.
@@ -19,19 +20,21 @@ class ServidorArquivos(rpyc.Service):
         else:
             return ("O diretório: "+homedir+" já existe.")
 
-    def exposed_cd(self, caminho, usuario):
-
+    def exposed_cd(self, caminho, json_usuario):
+        
+        usuario = User().json_loads(json_usuario)
         data = {}
         # Se o arquivo existir e for um diretório.
-        print(caminho, os.getcwd())
+        print("Antes: ", caminho, os.getcwd())
         if os.path.exists(caminho):
             if os.path.isdir(caminho):
                 # Se o usuário poder acessar esse diretório
                 if permissao_acesso(caminho, usuario):
                     data['sucesso'] = True
-                    data['mensagem'] = caminho
-                    # Sicronizando o diretório com o usuário.
                     os.chdir(caminho)
+                    data['mensagem'] = os.getcwd()
+                    # Sicronizando o diretório com o usuário.
+                    print("Depois: ", caminho, os.getcwd())
                 # Se o usuário não tiver permissão.
                 else:
                     data['sucesso'] = False
@@ -48,9 +51,6 @@ class ServidorArquivos(rpyc.Service):
 
     def exposed_listarDiretorio(self, caminho, dir_corrente):
 
-        # Verificando se o caminho é .
-        if caminho == '.':
-            caminho = dir_corrente
         # Se o arquivo ou diretório existir.
         if os.path.exists(caminho):
             if os.path.isdir(caminho):

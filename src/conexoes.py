@@ -50,7 +50,7 @@ class ServidorConexoes():
                             usuario.login = comandos[0]
                             usuario.status = True
                             usuario.dir_corrente = os.getcwd()+'/home/'+comandos[0]
-                            usuario.dir_padrao = usuario.dir_corrente
+                            usuario.dir_padrao = os.getcwd()+'/home/'+comandos[0]
                             break
                         else:
                             tentativas -= 1
@@ -77,7 +77,7 @@ class ServidorConexoes():
 
     def ls(self, conn, usuario, servidor_rpc_ftp, conn_rpc_ftp, comandos):
         try:
-            # Removendo o comandos ls.
+            # Removendo o comando ls.
             comandos.pop(0)
             # Se não foi informado o arquivo ou diretório a ser listado.
             if len(comandos) == 0:
@@ -112,12 +112,7 @@ class ServidorConexoes():
                 print("Retornou o dado.", data)
                 # Se o diretório existe e ocorreu sucesso no comando
                 if data["sucesso"]:
-                    # Se estiver aprofundando na árvore ou 
-                    # Se estiver retornando na árvore.
-                    # atualize o diretório corrente dele.
-                    if len(data['mensagem']) > len(usuario.dir_corrente) or \
-                        len(data['mensagem']) < len(usuario.dir_corrente):
-                        usuario.dir_corrente = data['mensagem']
+                    usuario.dir_corrente = data['mensagem']
                 data['comando'] = 'cd'
                 conn.send(json.dumps(data).encode())
             else:
@@ -129,6 +124,7 @@ class ServidorConexoes():
         except Exception as err:
             print(str(err))
             exit(1)
+
     def menu(self, conn):
 
         print("TODO: Iniciando servidor de escuta do cliente.", conn.getpeername())
