@@ -1,4 +1,5 @@
 import os
+import json
 import rpyc
 from sys import argv, exit
 
@@ -33,15 +34,15 @@ class ServidorArquivos(rpyc.Service):
                 # Se o usuário avançar na árvore de diretórios.
                 else:
                     data['mensagem'] = caminho
-                return data
+                return json.dumps(data)
             else:
                 data['sucesso'] = False
                 data['mensagem'] = "bash: cd: "+caminho+": Não é um diretório"
-                return data
+                return json.dumps(data)
         else:
             data['sucesso'] = False
             data['mensagem'] = "bash: cd: "+caminho+": Arquivo ou diretório inexistente"
-            return data
+            return json.dumps(data)
 
     def exposed_listarDiretorio(self, caminho, dir_corrente):
 

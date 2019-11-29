@@ -20,7 +20,8 @@ class Cliente():
         usuario = User()
         # Enquanto o usuário não se auntenticar.
         while True:
-            texto = input(usuario.dir_corrente)
+            #texto = input(usuario.dir_corrente)
+            texto = "login welton 123"
             socket_con.send(texto.encode())
             data = socket_con.recv(1024)
             if not data:

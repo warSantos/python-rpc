@@ -91,8 +91,8 @@ class ServidorConexoes():
                     tokens.pop(0)
                     i += 1
                 diretorio = '/'.join(tokens)
-                if diretorio.find(usuario.dir_padrao) != 0:
-                    diretorio = usuario.dir_padrao+'/'+diretorio
+                if diretorio.find(usuario.dir_corrente) != 0:
+                    diretorio = usuario.dir_corrente+'/'+diretorio
                 # Se o usuário tentar listar o diretório de outro, não for o root
                 # ou tentar voltar na árvore do sistema.
                 if not usuario.grupo_root and regex_dir(diretorio):
@@ -119,12 +119,18 @@ class ServidorConexoes():
             retorno = {}
             # Removendo o comandos ls.
             comandos.pop(0)
-            # Se não foi informado o arquivo ou diretório a ser listado.
+            # Se não foi informado o arquivo ou diretório.
             if len(comandos) == 0:
                 comandos.append(usuario.dir_padrao)
             # Se a quantidade de parâmetros estiver correta.
             if len(comandos) == 1:
-                data = servidor_rpc_ftp.cd(conn_rpc_ftp, comandos[1])
+                # Se o diretório corrente do usuário não for informado.
+                if comandos[0].find(usuario.dir_corrente) == -1:
+                    comandos[0] = '/'.join([usuario.dir_corrente, comandos[0]])
+                print(comandos[0])
+                data = json.loads(servidor_rpc_ftp.cd(conn_rpc_ftp, comandos[0], \
+                    usuario.dir_corrente))
+                print("Retornou o dado.", data)
                 # Se o diretório existe e ocorreu sucesso no comando
                 if data["sucesso"]:
                     # Se estiver aprofundando na árvore ou 
@@ -134,13 +140,13 @@ class ServidorConexoes():
                         len(data['mensagem']) < len(usuario.dir_corrente):
                         usuario.dir_corrente = data['mensagem']
                 data['comando'] = 'cd'
-                return json.dumps(data)
+                conn.send(json.dumps(data).encode())
             else:
                 data = {}
                 data['comando'] = 'cd'
                 data['sucesso'] = False
                 data['mensagem'] = "bash: cd: número excessivo de argumentos"
-                return json.dumps(data)
+                conn.send(json.dumps(data).encode())
         except Exception as err:
             print(str(err))
             exit(1)
