@@ -13,7 +13,7 @@ class User():
 		self.login = login
 		self.status = status
 		self.dir_corrente = dir_corrente
-		self.dir_padrao += dir_corrente
+		self.dir_padrao = dir_corrente
 		self.grupo_root = grupo_root
 
 	# Converte as informações do usuário para JSON.
@@ -26,3 +26,10 @@ class User():
 		data['dir_padrao'] = self.dir_padrao
 		data['grupo_root'] = self.grupo_root
 		return json.dumps(data)
+	
+	def json_loads(self, arquivo):
+
+		data = json.loads(arquivo)
+		usuario = User(data['login'], data['status'], data['dir_corrente'], \
+			data['grupo_root'])
+		return usuario

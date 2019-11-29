@@ -1,4 +1,6 @@
+import os
 import getopt
+from user import User
 from sys import argv, exit
 
 def get_opt(texto, parametros, funcao_help):
@@ -17,11 +19,12 @@ def get_opt(texto, parametros, funcao_help):
         print(str(err))
         funcao_help()
 
-def permissao_acesso(caminho, usuario):
+def permissao_acesso(caminho, usuario_info):
 
-    print(dir(usuario))
+    usuario = User().json_loads(usuario_info)
+    print(usuario.dir_padrao)
     # Se o usuário tiver poder de root.
-    if usuario.grupo_root():
+    if usuario.grupo_root:
         return True
     
     # Fazendo bkp do diretório atual.

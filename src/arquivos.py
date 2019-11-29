@@ -23,6 +23,7 @@ class ServidorArquivos(rpyc.Service):
 
         data = {}
         # Se o arquivo existir e for um diretório.
+        print(caminho, os.getcwd())
         if os.path.exists(caminho):
             if os.path.isdir(caminho):
                 # Se o usuário poder acessar esse diretório
