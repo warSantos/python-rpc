@@ -26,7 +26,7 @@ class ServidorConexeosRPC(rpyc.Service):
     
     # Navega entre os diretórios do usuário.
     def cd(self, conexao, caminho, usuario):
-        return conexao.root.cd(caminho, usuario)
+        return conexao.root.cd(caminho, usuario.usuario_json())
 
     # Lista os diretórios fazendo conexão com o servidor de arquivos.
     def listarDiretorio(self, conexao, caminho, dir_corrente):
