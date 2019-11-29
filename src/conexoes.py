@@ -1,4 +1,5 @@
 # import socket programming library
+import os
 import json
 import time
 import socket
@@ -7,7 +8,7 @@ from multiprocessing import Pool
 
 # Importando módulos locais.
 from user import User
-from base import get_opt, regex_dir
+from base import get_opt
 from conexoes_rpc import ServidorConexeosRPC
 
 
@@ -48,7 +49,7 @@ class ServidorConexoes():
                             # Configurando o usuário.
                             usuario.login = comandos[0]
                             usuario.status = True
-                            usuario.dir_corrente = 'home/'+comandos[0]
+                            usuario.dir_corrente = os.getcwd()+'/home/'+comandos[0]
                             usuario.dir_padrao = usuario.dir_corrente
                             break
                         else:
@@ -80,30 +81,12 @@ class ServidorConexoes():
             comandos.pop(0)
             # Se não foi informado o arquivo ou diretório a ser listado.
             if len(comandos) == 0:
-                comandos.append('.')
+                comandos.append(usuario.dir_corrente)
             msg = ''
-            for param in comandos:
-                # Removendo entradas indevidas para diretórios anteriores.
-                tokens = param.split('/')
-                i = 0
-                while i < len(tokens) \
-                    and (tokens[i] == '.' or tokens[i] == '..'):
-                    tokens.pop(0)
-                    i += 1
-                diretorio = '/'.join(tokens)
-                if diretorio.find(usuario.dir_corrente) != 0:
-                    diretorio = usuario.dir_corrente+'/'+diretorio
-                # Se o usuário tentar listar o diretório de outro, não for o root
-                # ou tentar voltar na árvore do sistema.
-                if not usuario.grupo_root and regex_dir(diretorio):
-                    msg += diretorio+": "
-                    msg += "error: permissão negada.\n"
-                # Se o usuário tentar lista um diretório que pertence a árvore de sua
-                # home.
-                else:
-                    msg += diretorio+": \n\n"
-                    msg += servidor_rpc_ftp.listarDiretorio(conn_rpc_ftp, \
-                        diretorio, usuario.dir_corrente)+"\n"
+            for param in comandos:                
+                msg += param+": \n\n"
+                msg += servidor_rpc_ftp.listarDiretorio(conn_rpc_ftp, \
+                    param, usuario.dir_corrente)+"\n"
             # Configurando JSON para envio.
             data = {}
             data['comando'] = 'ls'
@@ -124,12 +107,8 @@ class ServidorConexoes():
                 comandos.append(usuario.dir_padrao)
             # Se a quantidade de parâmetros estiver correta.
             if len(comandos) == 1:
-                # Se o diretório corrente do usuário não for informado.
-                if comandos[0].find(usuario.dir_corrente) == -1:
-                    comandos[0] = '/'.join([usuario.dir_corrente, comandos[0]])
-                print(comandos[0])
                 data = json.loads(servidor_rpc_ftp.cd(conn_rpc_ftp, comandos[0], \
-                    usuario.dir_corrente))
+                    usuario))
                 print("Retornou o dado.", data)
                 # Se o diretório existe e ocorreu sucesso no comando
                 if data["sucesso"]:
@@ -159,6 +138,9 @@ class ServidorConexoes():
         # Conectando o servidor de arquivos.
         servidor_rpc_ftp = ServidorConexeosRPC()
         conn_rpc_ftp = servidor_rpc_ftp.conectar()
+        # Alterando o diretório do usuário no servidor de arquivos para a home dele.
+        servidor.cd(conn, usuario, servidor_rpc_ftp, \
+                        conn_rpc_ftp, ["cd", usuario.dir_padrao])
         # Menu de comandos.
         while True:
             data = conn.recv(1024)

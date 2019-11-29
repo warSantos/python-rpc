@@ -1,3 +1,5 @@
+import json
+
 class User():
 
 	login = ''
@@ -13,3 +15,14 @@ class User():
 		self.dir_corrente = dir_corrente
 		self.dir_padrao += dir_corrente
 		self.grupo_root = grupo_root
+
+	# Converte as informações do usuário para JSON.
+	def usuario_json(self):
+		
+		data = {}
+		data['login'] = self.login
+		data['status'] = self.status
+		data['dir_corrente'] = self.dir_corrente
+		data['dir_padrao'] = self.dir_padrao
+		data['grupo_root'] = self.grupo_root
+		return json.dumps(data)

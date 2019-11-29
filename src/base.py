@@ -17,21 +17,22 @@ def get_opt(texto, parametros, funcao_help):
         print(str(err))
         funcao_help()
 
-def regex_dir(caminho):
+def permissao_acesso(caminho, usuario):
 
-    retornos = 2
-    avancos = 0
-    tokens = caminho.split('/')
-
-    # Contabilizando os ..
-    for t in tokens:
-        if t == '..':
-            retornos += 1
-        else:
-            avancos += 1
-    
-    # Se o caminho retorna mais na árvore que avança.
-    if retornos > avancos:
+    print(dir(usuario))
+    # Se o usuário tiver poder de root.
+    if usuario.grupo_root():
         return True
-    else:
+    
+    # Fazendo bkp do diretório atual.
+    bkp_dir = os.getcwd()
+    # Alterando o caminho para o novo diretório.
+    os.chdir(caminho)
+    # Pegando o novo diretório.
+    novo_dir = os.getcwd()
+    # Retornando para o diretório anterior ao CD.
+    os.chdir(bkp_dir)
+    # Se o usuário não saiu de sua home.
+    if novo_dir.find(usuario.dir_padrao) == 0:
         return False
+    return True

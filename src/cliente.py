@@ -1,3 +1,4 @@
+import os
 import rpyc
 import json
 import socket
@@ -33,13 +34,13 @@ class Cliente():
                 cmd, login, _ = texto.split()
                 usuario.status = retorno['aceito']
                 usuario.login = login
-                usuario.dir_corrente = 'home/'+login
+                usuario.dir_corrente = os.getcwd()+'/home/'+login
                 break
             else:
                 print(retorno['mensagem'])
         
         while True:
-            prefixo = usuario.login+'@server:~/'+usuario.dir_corrente+'$ '
+            prefixo = usuario.login+'@server:~'+usuario.dir_corrente+'$ '
             texto = input(prefixo)
             socket_con.send(texto.encode())
             data = socket_con.recv(1024)

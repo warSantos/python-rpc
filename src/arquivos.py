@@ -3,6 +3,9 @@ import json
 import rpyc
 from sys import argv, exit
 
+# Importando módulos locais.
+from base import permissao_acesso
+
 class ServidorArquivos(rpyc.Service):
 
     def exposed_criarHome(self, caminho):
@@ -16,24 +19,22 @@ class ServidorArquivos(rpyc.Service):
         else:
             return ("O diretório: "+homedir+" já existe.")
 
-    def exposed_cd(self, caminho, dir_corrente):
+    def exposed_cd(self, caminho, usuario):
 
         data = {}
         # Se o arquivo existir e for um diretório.
         if os.path.exists(caminho):
             if os.path.isdir(caminho):
-                data['sucesso'] = True
-                # Verificando se o diretório é o ..
-                tokens = caminho.split("/")
-                # Se o usuário entrar no diretório corrente.
-                if tokens[-1] == '.':
-                    data['mensagem'] = dir_corrente
-                # Se o usuário entrar no diretório anterior.
-                elif tokens[-1] == '..':
-                    data['mensagem'] = '/'.join(tokens.pop())
-                # Se o usuário avançar na árvore de diretórios.
-                else:
+                # Se o usuário poder acessar esse diretório
+                if permissao_acesso(caminho, usuario):
+                    data['sucesso'] = True
                     data['mensagem'] = caminho
+                    # Sicronizando o diretório com o usuário.
+                    os.chdir(caminho)
+                # Se o usuário não tiver permissão.
+                else:
+                    data['sucesso'] = False
+                    data['mensagem'] = "error: permissão negada.\n"
                 return json.dumps(data)
             else:
                 data['sucesso'] = False
