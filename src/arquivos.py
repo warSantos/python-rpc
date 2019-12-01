@@ -1,4 +1,6 @@
 import os
+# TODO: remover time
+import time
 import json
 import rpyc
 from user import User
@@ -23,9 +25,11 @@ class ServidorArquivos(rpyc.Service):
     def exposed_cd(self, caminho, json_usuario):
         
         usuario = User().json_loads(json_usuario)
+        # Atualizando o diretório do processo com o do cliente.
         data = {}
         # Se o arquivo existir e for um diretório.
-        print("Antes: ", caminho, os.getcwd())
+        print("Antes destino:", caminho, "Antes SO:", os.getcwd())
+        os.chdir(usuario.dir_corrente)
         if os.path.exists(caminho):
             if os.path.isdir(caminho):
                 # Se o usuário poder acessar esse diretório
@@ -34,7 +38,7 @@ class ServidorArquivos(rpyc.Service):
                     os.chdir(caminho)
                     data['mensagem'] = os.getcwd()
                     # Sicronizando o diretório com o usuário.
-                    print("Depois: ", caminho, os.getcwd())
+                    print("Depois: ", caminho, os.getcwd(),'\n\n')
                 # Se o usuário não tiver permissão.
                 else:
                     data['sucesso'] = False
@@ -108,6 +112,6 @@ if __name__=='__main__':
 
     hostname = argv[1]
     porta = int(argv[2])
-    servidor = rpyc.ThreadPoolServer(ServidorArquivos, \
+    servidor = rpyc.ForkingServer(ServidorArquivos, \
         hostname=hostname, port=porta)
     servidor.start()
