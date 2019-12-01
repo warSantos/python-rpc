@@ -96,6 +96,34 @@ class ServidorConexoes():
             print(str(err))
             exit(1)
 
+    def mkdir(slef, conn, usuario, servidor_rpc_ftp, conn_rpc_ftp, comandos):
+
+        try:
+            # Removendo o comando mkdir
+            comandos.pop(0)
+            if len(comandos) == 0:
+                conn.send("mkdir: falta operando".encode())
+                return
+            # Criando os diretórios.
+            msg = ''
+            for diretorio in comandos:
+                msg += diretorio+'\n\n'
+                msg += servidor_rpc_ftp.criarDiretorio(conn_rpc_ftp, \
+                    diretorio, usuario)
+            conn.send(msg.encode())
+        except Exception as err:
+            print(str(err))
+            exit(1)    
+
+    def rmdir(self, conn, usuario, servidor_rpc_ftp, conn_rpc_ftp, comandos):
+
+        try:
+            # Removendo o comando rmdir
+            print("Ola.")
+        except Exception as err:
+            print(str(err))
+            exit(1)
+
     def cd(self, conn, usuario, servidor_rpc_ftp, conn_rpc_ftp, comandos):
 
         try:

@@ -32,8 +32,8 @@ class ServidorConexeosRPC(rpyc.Service):
     def listarDiretorio(self, conexao, caminho, usuario):
         return conexao.root.listarDiretorio(caminho, usuario.usuario_json())
     
-    def criarDiretorio(self, conexao, caminho):
-        return conexao.root.criarDiretorio(caminho)
+    def criarDiretorio(self, conexao, caminho, usuario):
+        return conexao.root.criarDiretorio(caminho, usuario.usuario_json())
 
     def removerDiretorio(self, conexao, caminho):
         return conexao.root.removerDiretorio(caminho)

@@ -84,14 +84,60 @@ class ServidorArquivos(rpyc.Service):
             print("Error: diretório ou arquivo "+caminho+" não encontrado.")
             return ("Error: diretório ou arquivo "+caminho+" não encontrado.")
 
-    def exposed_criarDiretorio(self, caminho):
-
-        # Se o arquivo ou diretório existir.
-        if os.path.exists(caminho):
-            print(("Error: arquivo "+caminho+" existe."))
-            return ("Error: arquivo "+caminho+" existe.")
+    def exposed_criarDiretorio(self, caminho, json_usuario):
+        
+        usuario = User().json_loads(json_usuario)
+        # Sincronizando o diretório do processo com o do usuário.
+        os.chdir(usuario.dir_corrente)
+        # Se o caminho for absoluto.
+        if caminho[0] == '/':
+            # Verificando se o usuário ter permissão no caminho
+            tokens = caminho.split('/')
+            # Removendo possíveis ''
+            if len(tokens[-1]) == 0:
+                tokens.pop()
+            while len(tokens) > 0:
+                c = '/'+'/'.join(tokens)
+                # Se o caminho existir.
+                if os.path.exists(c):
+                    # Se o usuário tiver permissão.
+                    if permissao_acesso(c, usuario):
+                        # Se o caminho todo existir.
+                        if os.path.exists(caminho):
+                            return ("mkdir: não foi possível criar o diretório"+c+ \
+                                "Arquivo existe")
+                        else:
+                            os.makedirs(caminho)
+                        return (caminho+": criado com sucesso.")
+                    else:
+                        return ("mkdir: não foi possível criar o diretório "+ \
+                            caminho+" Permissão negada")
+                tokens.pop()
+                cont += 1
+        # Se o caminho for relativo.
         else:
-            os.makedirs(caminho)
+            tokens = caminho.split('/')
+            # Removendo possívels ''
+            if len(tokens[-1]) == 0:
+                tokens.pop()
+            for t in tokens:
+                # Se o diretório p existir.
+                if os.path.exists(t):
+                    # Entre e veja se o usuário tem permissão.
+                    if permissao_acesso(caminho, usuario):
+                        os.chdir(t)
+                    else:
+                        return ("mkdir: não foi possível criar o diretório "+ \
+                            caminho+" Permissão negada")
+                # Se todos os diretórios existentes no caminho passado
+                # não levou o usuário a um diretório onde ele não tem permissão.
+                # Crie o diretório.
+                else:
+                    os.makedirs(caminho)
+                    return (caminho+": criado com sucesso.")
+            # Se ele percorreu todos os diretórios e todos existiam.
+            return ("mkdir: não foi possível criar o diretório"+caminho+ \
+                            "Arquivo existe")
 
     def exposed_removerDiretorio(self, caminho):
 
