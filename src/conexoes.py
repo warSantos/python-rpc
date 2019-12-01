@@ -86,7 +86,7 @@ class ServidorConexoes():
             for param in comandos:                
                 msg += param+": \n\n"
                 msg += servidor_rpc_ftp.listarDiretorio(conn_rpc_ftp, \
-                    param, usuario.dir_corrente)+"\n"
+                    param, usuario)+"\n"
             # Configurando JSON para envio.
             data = {}
             data['comando'] = 'ls'

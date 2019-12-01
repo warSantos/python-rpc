@@ -1,6 +1,4 @@
 import os
-# TODO: remover time
-import time
 import json
 import rpyc
 from user import User
@@ -53,16 +51,34 @@ class ServidorArquivos(rpyc.Service):
             data['mensagem'] = "bash: cd: "+caminho+": Arquivo ou diretório inexistente"
             return json.dumps(data)
 
-    def exposed_listarDiretorio(self, caminho, dir_corrente):
+    def exposed_listarDiretorio(self, caminho, json_usuario):
 
+        usuario = User().json_loads(json_usuario)
+        # Sincronizando o diretório do processo com o do usuário.
+        os.chdir(usuario.dir_corrente)
         # Se o arquivo ou diretório existir.
         if os.path.exists(caminho):
+            # Se for um diretório.
             if os.path.isdir(caminho):
-                content = os.listdir(caminho)
-                content.sort()
-                return '\n'.join(content)
+                # Se o usuário tiver permissão para acessar o diretório.
+                if permissao_acesso(caminho, usuario):
+                    content = os.listdir(caminho)
+                    content.sort()
+                    return '\n'.join(content)
+                else:
+                    return 'ls: não foi possível abrir o diretório'+ \
+                        caminho+': Permissão negada'
+            # Se for um arquivo.
             else:
-                return caminho.split('/')[-1]
+                tokens = caminho.split('/')
+                tokens.pop()
+                dir_dest = '/'.join(tokens)
+                # Se o usuário tiver permissão para acessar o diretório onde esta o arquivo.
+                if permissao_acesso(dir_dest, usuario):
+                    return caminho.split('/')[-1]
+                else:
+                    return 'ls: não foi possível abrir o diretório'+ \
+                        caminho+': Permissão negada'
         # Se o diretório não existir.
         else:
             print("Error: diretório ou arquivo "+caminho+" não encontrado.")
