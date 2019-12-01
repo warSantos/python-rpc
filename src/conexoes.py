@@ -99,18 +99,23 @@ class ServidorConexoes():
     def mkdir(slef, conn, usuario, servidor_rpc_ftp, conn_rpc_ftp, comandos):
 
         try:
+            print("Etapa 5: ", comandos)
+            data = {}
+            data['comando'] = 'mkdir'
             # Removendo o comando mkdir
             comandos.pop(0)
             if len(comandos) == 0:
-                conn.send("mkdir: falta operando".encode())
+                data['conteudo'] = "mkdir: falta operando"
+                conn.send(json.dumps(data).encode())
                 return
             # Criando os diretórios.
             msg = ''
             for diretorio in comandos:
                 msg += diretorio+'\n\n'
-                msg += servidor_rpc_ftp.criarDiretorio(conn_rpc_ftp, \
+                msg += servidor_rpc_ftp.mkdir(conn_rpc_ftp, \
                     diretorio, usuario)
-            conn.send(msg.encode())
+            data['conteudo'] = msg
+            conn.send(json.dumps(data).encode())
         except Exception as err:
             print(str(err))
             exit(1)    
@@ -194,6 +199,10 @@ class ServidorConexoes():
                 elif comandos[0] == 'quit':
                     print("quit.")
                     conn.close()
+                elif comandos[0] == 'mkdir':
+                    print("Etapa 1: ", comandos)
+                    servidor.mkdir(conn, usuario, servidor_rpc_ftp, \
+                        conn_rpc_ftp, comandos)
                 # Faz chamada de função do put no servidor de RPC de arquivos.
                 elif comandos[0] == 'put':
                     print("Ola.")

@@ -84,8 +84,9 @@ class ServidorArquivos(rpyc.Service):
             print("Error: diretório ou arquivo "+caminho+" não encontrado.")
             return ("Error: diretório ou arquivo "+caminho+" não encontrado.")
 
-    def exposed_criarDiretorio(self, caminho, json_usuario):
+    def exposed_mkdir(self, caminho, json_usuario):
         
+        print("Etapa 10: ", caminho)
         usuario = User().json_loads(json_usuario)
         # Sincronizando o diretório do processo com o do usuário.
         os.chdir(usuario.dir_corrente)
@@ -96,6 +97,7 @@ class ServidorArquivos(rpyc.Service):
             # Removendo possíveis ''
             if len(tokens[-1]) == 0:
                 tokens.pop()
+            print("Etapa 20:")
             while len(tokens) > 0:
                 c = '/'+'/'.join(tokens)
                 # Se o caminho existir.
@@ -113,7 +115,6 @@ class ServidorArquivos(rpyc.Service):
                         return ("mkdir: não foi possível criar o diretório "+ \
                             caminho+" Permissão negada")
                 tokens.pop()
-                cont += 1
         # Se o caminho for relativo.
         else:
             tokens = caminho.split('/')
@@ -124,7 +125,7 @@ class ServidorArquivos(rpyc.Service):
                 # Se o diretório p existir.
                 if os.path.exists(t):
                     # Entre e veja se o usuário tem permissão.
-                    if permissao_acesso(caminho, usuario):
+                    if permissao_acesso(t, usuario):
                         os.chdir(t)
                     else:
                         return ("mkdir: não foi possível criar o diretório "+ \

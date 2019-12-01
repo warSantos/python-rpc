@@ -53,6 +53,7 @@ class Cliente():
                 print("Conexão fechada pelo servidor.")
                 exit(1)
             # Lendo retorno do servidor.
+            print(data)
             retorno = json.loads(data.decode())
             print(data)
             # Interpreta o retorno do comando cd.
@@ -72,6 +73,8 @@ class Cliente():
                 print("Ola.")
             # Interpreta o retorno do comando ls.
             elif retorno['comando'] == 'ls':
+                print(retorno['conteudo'])
+            elif retorno['comando'] == 'mkdir':
                 print(retorno['conteudo'])
             # Interpreta o retorno do comando put.
             elif retorno['comando'] == 'put':
