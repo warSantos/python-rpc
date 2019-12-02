@@ -35,13 +35,13 @@ class ServidorConexeosRPC(rpyc.Service):
     def mkdir(self, conexao, caminho, usuario):
         return conexao.root.mkdir(caminho, usuario.usuario_json())
 
-    def removerDiretorio(self, conexao, caminho):
-        return conexao.root.removerDiretorio(caminho)
+    def rmdir(self, conexao, caminho):
+        return conexao.root.rmdir(caminho, usuario.usuario_json())
 
-    def removerArquivo(self, conexao, caminho):
-        return conexao.root.removerArquivo(caminho)
+    def rm(self, conexao, caminho):
+        return conexao.root.rm(caminho, usuario.usuario_json())
 
 if __name__ == "__main__":
     servidor = ServidorConexeosRPC()
     conexao = servidor.conectar("localhost", "8002")
-    print(servidor.removerArquivo(conexao, "home/root/diretorio"))
+    print(servidor.rm(conexao, "home/root/diretorio"))

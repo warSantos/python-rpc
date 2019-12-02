@@ -96,10 +96,9 @@ class ServidorConexoes():
             print(str(err))
             exit(1)
 
-    def mkdir(slef, conn, usuario, servidor_rpc_ftp, conn_rpc_ftp, comandos):
+    def mkdir(self, conn, usuario, servidor_rpc_ftp, conn_rpc_ftp, comandos):
 
         try:
-            print("Etapa 5: ", comandos)
             data = {}
             data['comando'] = 'mkdir'
             # Removendo o comando mkdir
@@ -118,13 +117,31 @@ class ServidorConexoes():
             conn.send(json.dumps(data).encode())
         except Exception as err:
             print(str(err))
-            exit(1)    
+            exit(1)
+
+    def put(self, conn, usuario, servidor_rpc_ftp, conn_rpc_ftp, comandos):
+        print("Ola.")
+
 
     def rmdir(self, conn, usuario, servidor_rpc_ftp, conn_rpc_ftp, comandos):
 
         try:
-            # Removendo o comando rmdir
-            print("Ola.")
+            data = {}
+            data['comando'] = 'rmdir'
+            # Removendo o comando rmdir.
+            comandos.pop(0)
+            if len(comandos) == 0:
+                data['conteudo'] = "rmdir: falta operando"
+                conn.send(json.dumps(data).encode())
+                return
+            # Criando os diretórios.
+            msg = ''
+            for diretorio in comandos:
+                msg += diretorio+'\n\n'
+                msg += servidor_rpc_ftp.rmdir(conn_rpc_ftp, \
+                    diretorio, usuario)
+            data['conteudo'] = msg
+            conn.send(json.dumps(data).encode())
         except Exception as err:
             print(str(err))
             exit(1)

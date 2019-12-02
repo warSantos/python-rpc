@@ -7,6 +7,7 @@ from sys import argv, exit
 # Importando módulos locais.
 from base import permissao_acesso
 
+
 class ServidorArquivos(rpyc.Service):
 
     def exposed_criarHome(self, caminho):
@@ -21,7 +22,7 @@ class ServidorArquivos(rpyc.Service):
             return ("O diretório: "+homedir+" já existe.")
 
     def exposed_cd(self, caminho, json_usuario):
-        
+
         usuario = User().json_loads(json_usuario)
         # Atualizando o diretório do processo com o do cliente.
         data = {}
@@ -36,7 +37,7 @@ class ServidorArquivos(rpyc.Service):
                     os.chdir(caminho)
                     data['mensagem'] = os.getcwd()
                     # Sicronizando o diretório com o usuário.
-                    print("Depois: ", caminho, os.getcwd(),'\n\n')
+                    print("Depois: ", caminho, os.getcwd(), '\n\n')
                 # Se o usuário não tiver permissão.
                 else:
                     data['sucesso'] = False
@@ -48,7 +49,8 @@ class ServidorArquivos(rpyc.Service):
                 return json.dumps(data)
         else:
             data['sucesso'] = False
-            data['mensagem'] = "bash: cd: "+caminho+": Arquivo ou diretório inexistente"
+            data['mensagem'] = "bash: cd: "+caminho + \
+                ": Arquivo ou diretório inexistente"
             return json.dumps(data)
 
     def exposed_listarDiretorio(self, caminho, json_usuario):
@@ -66,7 +68,7 @@ class ServidorArquivos(rpyc.Service):
                     content.sort()
                     return '\n'.join(content)
                 else:
-                    return 'ls: não foi possível abrir o diretório'+ \
+                    return 'ls: não foi possível abrir o diretório' + \
                         caminho+': Permissão negada'
             # Se for um arquivo.
             else:
@@ -77,7 +79,7 @@ class ServidorArquivos(rpyc.Service):
                 if permissao_acesso(dir_dest, usuario):
                     return caminho.split('/')[-1]
                 else:
-                    return 'ls: não foi possível abrir o diretório'+ \
+                    return 'ls: não foi possível abrir o diretório' + \
                         caminho+': Permissão negada'
         # Se o diretório não existir.
         else:
@@ -85,8 +87,7 @@ class ServidorArquivos(rpyc.Service):
             return ("Error: diretório ou arquivo "+caminho+" não encontrado.")
 
     def exposed_mkdir(self, caminho, json_usuario):
-        
-        print("Etapa 10: ", caminho)
+
         usuario = User().json_loads(json_usuario)
         # Sincronizando o diretório do processo com o do usuário.
         os.chdir(usuario.dir_corrente)
@@ -97,7 +98,6 @@ class ServidorArquivos(rpyc.Service):
             # Removendo possíveis ''
             if len(tokens[-1]) == 0:
                 tokens.pop()
-            print("Etapa 20:")
             while len(tokens) > 0:
                 c = '/'+'/'.join(tokens)
                 # Se o caminho existir.
@@ -106,14 +106,67 @@ class ServidorArquivos(rpyc.Service):
                     if permissao_acesso(c, usuario):
                         # Se o caminho todo existir.
                         if os.path.exists(caminho):
-                            return ("mkdir: não foi possível criar o diretório"+c+ \
-                                "Arquivo existe")
+                            return ("mkdir: não foi possível criar o diretório"+c +
+                                    "Arquivo existe")
                         else:
                             os.makedirs(caminho)
                         return (caminho+": criado com sucesso.")
                     else:
-                        return ("mkdir: não foi possível criar o diretório "+ \
-                            caminho+" Permissão negada")
+                        return ("mkdir: não foi possível criar o diretório " +
+                                caminho+" Permissão negada")
+                tokens.pop()
+        # Se o caminho for relativo.
+        else:
+            tokens = caminho.split('/')
+            # Removendo possívels ''
+            if len(tokens[-1]) == 0:
+                tokens.pop()
+            for t in tokens:
+                # Se o diretório p existir.
+                if os.path.exists(t):
+                    # Entre e veja se o usuário tem permissão.
+                    if permissao_acesso(t, usuario):
+                        os.chdir(t)
+                    # Se em algum momento o usuário não tiver permissão.
+                    else:
+                        return ("mkdir: não foi possível criar o diretório " +
+                                caminho+" Permissão negada")
+                else:
+                    os.makedirs(caminho)
+                    return (caminho+": criado com sucesso.")
+            # Se ele percorreu todos os diretórios e todos existiam.
+            return ("mkdir: não foi possível criar o diretório"+caminho +
+                    "Arquivo existe")
+
+    def exposed_rmdir(self, caminho, json_usuario):
+
+        usuario = User().json_loads(json_usuario)
+        # Sincronizando o diretório do processo com o do usuário.
+        os.chdir(usuario.dir_corrente)
+        # Se o caminho for absoluto.
+        if caminho[0] == '/':
+            # Verificando se o usuário ter permissão no caminho
+            tokens = caminho.split('/')
+            final = tokens.pop(0)
+            # Removendo possíveis ''
+            if len(tokens[-1]) == 0:
+                tokens.pop()
+            while len(tokens) > 0:
+                c = '/'+'/'.join(tokens)
+                # Se o caminho existir.
+                if os.path.exists(c):
+                    # Se o usuário tiver permissão.
+                    if permissao_acesso(c, usuario):
+                        # Se o caminho todo existir.
+                        if os.path.exists(caminho):
+                            return ("rmdir: não foi possível criar o diretório"+c +
+                                    "Arquivo existe")
+                        else:
+                            os.makedirs(caminho)
+                        return (caminho+": criado com sucesso.")
+                    else:
+                        return ("rmdir: não foi possível remover o diretório " +
+                                caminho+" Permissão negada")
                 tokens.pop()
         # Se o caminho for relativo.
         else:
@@ -128,19 +181,14 @@ class ServidorArquivos(rpyc.Service):
                     if permissao_acesso(t, usuario):
                         os.chdir(t)
                     else:
-                        return ("mkdir: não foi possível criar o diretório "+ \
-                            caminho+" Permissão negada")
-                # Se todos os diretórios existentes no caminho passado
-                # não levou o usuário a um diretório onde ele não tem permissão.
-                # Crie o diretório.
+                        return ("rmdir: não foi possível criar o diretório " +
+                                caminho+" Permissão negada")
                 else:
                     os.makedirs(caminho)
                     return (caminho+": criado com sucesso.")
             # Se ele percorreu todos os diretórios e todos existiam.
-            return ("mkdir: não foi possível criar o diretório"+caminho+ \
-                            "Arquivo existe")
-
-    def exposed_removerDiretorio(self, caminho):
+            return ("rmdir: não foi possível criar o diretório"+caminho +
+                    "Arquivo existe")
 
         # Se o arquivo ou diretório existir.
         if not os.path.exists(caminho):
@@ -154,7 +202,7 @@ class ServidorArquivos(rpyc.Service):
             else:
                 os.rmdir(caminho)
 
-    def exposed_removerArquivo(self, caminho):
+    def exposed_rm(self, caminho):
         # Se o arquivo ou diretório existir.
         if not os.path.exists(caminho):
             print(("Error: arquivo "+caminho+" não encontrado."))
@@ -162,7 +210,8 @@ class ServidorArquivos(rpyc.Service):
         else:
             # Se ele for um arquivo, não apague e retorne erro.
             if os.path.isdir(caminho):
-                print("rmdir: falhou em remover "+caminho+": Não é um diretório")
+                print("rmdir: falhou em remover " +
+                      caminho+": Não é um diretório")
                 return ("rmdir: falhou em remover "+caminho+": Não é um diretório")
             else:
                 os.remove(caminho)
@@ -171,10 +220,10 @@ class ServidorArquivos(rpyc.Service):
         return "Servidor de arquivos funcionando corretamente."
 
 
-if __name__=='__main__':
+if __name__ == '__main__':
 
     hostname = argv[1]
     porta = int(argv[2])
-    servidor = rpyc.ForkingServer(ServidorArquivos, \
-        hostname=hostname, port=porta)
+    servidor = rpyc.ForkingServer(ServidorArquivos,
+                                  hostname=hostname, port=porta)
     servidor.start()
