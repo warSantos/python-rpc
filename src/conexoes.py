@@ -85,7 +85,7 @@ class ServidorConexoes():
             msg = ''
             for param in comandos:                
                 msg += param+": \n\n"
-                msg += servidor_rpc_ftp.listarDiretorio(conn_rpc_ftp, \
+                msg += servidor_rpc_ftp.ls(conn_rpc_ftp, \
                     param, usuario)+"\n"
             # Configurando JSON para envio.
             data = {}
@@ -228,7 +228,8 @@ class ServidorConexoes():
                     print("Ola.")
                 # Faz chamada de função do rmdir no servidor de RPC de arquivos.
                 elif comandos[0] == 'rmdir':
-                    print("Ola.")
+                    servidor.rmdir(conn, usuario, servidor_rpc_ftp, \
+                        conn_rpc_ftp, comandos)
                 # Retorna erro (comando não encontrado).
                 else:
                     print("error: comando "+comandos[0]+" não encontrado.")

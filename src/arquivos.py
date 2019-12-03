@@ -53,7 +53,7 @@ class ServidorArquivos(rpyc.Service):
                 ": Arquivo ou diretório inexistente"
             return json.dumps(data)
 
-    def exposed_listarDiretorio(self, caminho, json_usuario):
+    def exposed_ls(self, caminho, json_usuario):
 
         usuario = User().json_loads(json_usuario)
         # Sincronizando o diretório do processo com o do usuário.
@@ -147,33 +147,44 @@ class ServidorArquivos(rpyc.Service):
         if caminho[0] == '/':
             # Verificando se o usuário ter permissão no caminho
             tokens = caminho.split('/')
-            final = tokens.pop(0)
             # Removendo possíveis ''
             if len(tokens[-1]) == 0:
                 tokens.pop()
+            final = tokens.pop(0)
             while len(tokens) > 0:
                 c = '/'+'/'.join(tokens)
                 # Se o caminho existir.
                 if os.path.exists(c):
                     # Se o usuário tiver permissão.
                     if permissao_acesso(c, usuario):
-                        # Se o caminho todo existir.
-                        if os.path.exists(caminho):
-                            return ("rmdir: não foi possível criar o diretório"+c +
-                                    "Arquivo existe")
-                        else:
-                            os.makedirs(caminho)
-                        return (caminho+": criado com sucesso.")
+                        os.chdir(c)
                     else:
                         return ("rmdir: não foi possível remover o diretório " +
-                                caminho+" Permissão negada")
+                                caminho+" Permissão negada.")
                 tokens.pop()
+            # Se o caminho todo existir.
+            if os.path.exists(caminho):
+                if os.path.isdir(caminho):
+                    if len(os.listdir(caminho)) == 0:
+                        return("rmdir: falhou em remover"+caminho \
+                        +" Diretório não vazio.")
+                    else:
+                        os.rmdir(caminho)
+                        return ("rmdir: diretório"+caminho+"removido.")
+                else:
+                    return ("rm: não foi possível remover"+caminho \
+                        +": É um diretório.")
+            else:
+                return ("rmdir: não foi possível remover o diretório"+c +
+                        "Arquivo não encontrado.")
         # Se o caminho for relativo.
         else:
             tokens = caminho.split('/')
             # Removendo possívels ''
             if len(tokens[-1]) == 0:
                 tokens.pop()
+            # Removendo o nome do arquivo para poder navegar por diretórios.
+            final = tokens.pop()
             for t in tokens:
                 # Se o diretório p existir.
                 if os.path.exists(t):
@@ -183,24 +194,22 @@ class ServidorArquivos(rpyc.Service):
                     else:
                         return ("rmdir: não foi possível criar o diretório " +
                                 caminho+" Permissão negada")
+            # Se o caminho todo existir.
+            if os.path.exists(final):
+                if os.path.isdir(final):
+                    if len(os.listdir(final)) == 0:
+                        return("rmdir: falhou em remover"+caminho \
+                        +" Diretório não vazio.")
+                    else:
+                        # Colocando o processo no diretório corrente do usuário.
+                        os.rmdir(final)
+                        return ("rmdir: diretório"+caminho+"removido.")
                 else:
-                    os.makedirs(caminho)
-                    return (caminho+": criado com sucesso.")
-            # Se ele percorreu todos os diretórios e todos existiam.
-            return ("rmdir: não foi possível criar o diretório"+caminho +
-                    "Arquivo existe")
-
-        # Se o arquivo ou diretório existir.
-        if not os.path.exists(caminho):
-            print(("Error: arquivo "+caminho+" não encontrado."))
-            return ("Error: arquivo "+caminho+" não encontrado.")
-        else:
-            # Se ele for um diretório, não apague e retorne erro.
-            if os.path.isfile(caminho):
-                print("rmdir: falhou em remover "+caminho+": Não é um arquivo")
-                return ("rmdir: falhou em remover "+caminho+": Não é um arquivo")
+                    return ("rmdir: não foi possível remover"+caminho \
+                        +": É um arquivo.")
             else:
-                os.rmdir(caminho)
+                return ("rmdir: não foi possível remover o diretório"+c +
+                        "Arquivo não encontrado.")
 
     def exposed_rm(self, caminho):
         # Se o arquivo ou diretório existir.

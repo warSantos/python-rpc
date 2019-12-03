@@ -29,16 +29,16 @@ class ServidorConexeosRPC(rpyc.Service):
         return conexao.root.cd(caminho, usuario.usuario_json())
 
     # Lista os diretórios fazendo conexão com o servidor de arquivos.
-    def listarDiretorio(self, conexao, caminho, usuario):
-        return conexao.root.listarDiretorio(caminho, usuario.usuario_json())
+    def ls(self, conexao, caminho, usuario):
+        return conexao.root.ls(caminho, usuario.usuario_json())
     
     def mkdir(self, conexao, caminho, usuario):
         return conexao.root.mkdir(caminho, usuario.usuario_json())
 
-    def rmdir(self, conexao, caminho):
+    def rmdir(self, conexao, caminho, usuario):
         return conexao.root.rmdir(caminho, usuario.usuario_json())
 
-    def rm(self, conexao, caminho):
+    def rm(self, conexao, caminho, usuario):
         return conexao.root.rm(caminho, usuario.usuario_json())
 
 if __name__ == "__main__":
