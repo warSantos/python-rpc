@@ -84,7 +84,7 @@ class Cliente():
                 print("Ola.")
             # Interpreta o retorno do comando rmdir.
             elif retorno['comando'] == 'rmdir':
-                print("Ola.")
+                print(retorno['conteudo'])
             # Trata entrada de comandos inexistentes.
             else:
                 print("Ola.")

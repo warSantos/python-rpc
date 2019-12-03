@@ -21,7 +21,7 @@ def get_opt(texto, parametros, funcao_help):
 def permissao_acesso(caminho, usuario):
 
     # Se o usuário tiver poder de root.
-    if usuario.grupo_root:
+    if usuario.grupo_root or caminho == '':
         return True
     
     # Fazendo bkp do diretório atual.
