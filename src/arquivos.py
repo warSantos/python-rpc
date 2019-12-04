@@ -1,5 +1,6 @@
 import io
 import os
+import ssl
 import json
 import rpyc
 from user import User
@@ -272,6 +273,8 @@ if __name__ == '__main__':
 
     hostname = argv[1]
     porta = int(argv[2])
+    aut = rpyc.utils.authenticators.SSLAuthenticator('certificados/no.pwd.server.key', \
+        'certificados/server.crt', ssl_version=ssl.PROTOCOL_TLSv1_2)
     servidor = rpyc.ForkingServer(ServidorArquivos,
-                                  hostname=hostname, port=porta)
+        hostname=hostname, port=porta, authenticator=aut)
     servidor.start()

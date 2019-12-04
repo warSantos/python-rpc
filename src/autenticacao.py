@@ -1,4 +1,5 @@
 import re
+import ssl
 import rpyc
 import json
 import hashlib
@@ -96,6 +97,9 @@ if __name__=='__main__':
         servidor.criarUsuario(hostname, argv[2])
     else:
         porta = int(argv[2])
-        servidor = rpyc.ThreadPoolServer(ServidorAutenticacao, \
-            hostname=hostname, port=porta)
+        aut = rpyc.utils.authenticators.SSLAuthenticator( \
+            'certificados/no.pwd.server.key', \
+            'certificados/server.crt', ssl_version=ssl.PROTOCOL_TLSv1_2)
+        servidor = rpyc.ForkingServer(ServidorAutenticacao, \
+            hostname=hostname, port=porta, authenticator=aut)
         servidor.start()

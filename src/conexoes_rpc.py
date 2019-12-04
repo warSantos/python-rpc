@@ -1,4 +1,5 @@
 import re
+import ssl
 import rpyc
 import json
 import hashlib
@@ -23,7 +24,8 @@ class ServidorConexeosRPC(rpyc.classic.ClassicService):
     # Por padrão esta definido a porta utilizada pelo servidor de arquivos
     # em testes com uma máquina apenas.
     def conectar(self, hostname="127.0.0.1", porta=8001):
-        return rpyc.classic.connect(hostname, porta)
+        return rpyc.classic.ssl_connect(hostname, porta, \
+            ssl_version=ssl.PROTOCOL_TLSv1_2)
     
     # Navega entre os diretórios do usuário.
     def cd(self, conexao, caminho, usuario):
@@ -42,7 +44,6 @@ class ServidorConexeosRPC(rpyc.classic.ClassicService):
             texto = ''
             while True:
                 t = fd.read(1024)
-                #print(t)
                 # Se acabar o conteúdo do arquivo pare de enviar.
                 if t == b'':
                     conn_clt.send('\0'.encode())
