@@ -1,3 +1,4 @@
+import io
 import os
 import json
 import rpyc
@@ -53,9 +54,19 @@ class ServidorArquivos(rpyc.Service):
                 ": Arquivo ou diretório inexistente"
             return json.dumps(data)
 
-    def exposed_get(self, arquivo, json_usuario):
-        print("Ola.")
+    #def exposed_get(self, arquivo, json_usuario):
+    def exposed_get(self, caminho, json_usuario):
         
+        usuario = User().json_loads(json_usuario)
+        # Atualizando o diretório do processo com o do cliente.
+        data = {}
+        data['sucesso'] = True
+        os.chdir(usuario.dir_corrente)
+        pt = io.open(caminho,'rb', \
+            buffering=1024, encoding=None, errors=None, \
+                newline=None, closefd=True)
+        data['conteudo'] = pt.read()
+        return data
 
     def exposed_ls(self, caminho, json_usuario):
 
@@ -233,6 +244,7 @@ class ServidorArquivos(rpyc.Service):
                 os.remove(caminho)
 
     def exposed_teste(self):
+        print(dir(self))
         return "Servidor de arquivos funcionando corretamente."
 
 

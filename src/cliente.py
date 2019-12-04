@@ -55,7 +55,6 @@ class Cliente():
             # Lendo retorno do servidor.
             print(data)
             retorno = json.loads(data.decode())
-            print(data)
             # Interpreta o retorno do comando cd.
             if retorno['comando'] == 'cd':
                 if retorno['sucesso']:
@@ -70,7 +69,9 @@ class Cliente():
                 exit(0)
             # Interpreta o retorno do comando get.
             elif retorno['comando'] == 'get':
-                print("Ola.")
+                # Se o arquivo existe e pode ser baixado.
+                if retorno['sucesso']:
+                    
             # Interpreta o retorno do comando ls.
             elif retorno['comando'] == 'ls':
                 print(retorno['conteudo'])

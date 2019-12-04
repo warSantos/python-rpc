@@ -75,6 +75,9 @@ class ServidorConexoes():
             print(str(err))
             exit(1)
 
+    def get(self, conn, usuario, servidor_rpc_ftp, conn_rpc_ftp, comandos):
+        
+        
     def ls(self, conn, usuario, servidor_rpc_ftp, conn_rpc_ftp, comandos):
         try:
             # Removendo o comando ls.
