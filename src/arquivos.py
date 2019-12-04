@@ -9,9 +9,9 @@ from sys import argv, exit
 from base import permissao_acesso
 
 
-class ServidorArquivos(rpyc.Service):
+class ServidorArquivos(rpyc.classic.ClassicService):
 
-    def exposed_criarHome(self, caminho):
+    def criarHome(self, caminho):
 
         homedir = 'home/'+caminho
         # Se o caminho não existir
@@ -22,7 +22,7 @@ class ServidorArquivos(rpyc.Service):
         else:
             return ("O diretório: "+homedir+" já existe.")
 
-    def exposed_cd(self, caminho, json_usuario):
+    def cd(self, caminho, json_usuario):
 
         usuario = User().json_loads(json_usuario)
         # Atualizando o diretório do processo com o do cliente.
@@ -54,21 +54,43 @@ class ServidorArquivos(rpyc.Service):
                 ": Arquivo ou diretório inexistente"
             return json.dumps(data)
 
-    #def exposed_get(self, arquivo, json_usuario):
-    def exposed_get(self, caminho, json_usuario):
+    #def get(self, arquivo, json_usuario):
+    def get(self, caminho, json_usuario):
         
         usuario = User().json_loads(json_usuario)
         # Atualizando o diretório do processo com o do cliente.
-        data = {}
-        data['sucesso'] = True
         os.chdir(usuario.dir_corrente)
-        pt = io.open(caminho,'rb', \
-            buffering=1024, encoding=None, errors=None, \
-                newline=None, closefd=True)
-        data['conteudo'] = pt.read()
-        return data
+        data = {}
+        tokens = caminho.split('/')
+        final = tokens.pop()
+        c = '/'.join(tokens)
+        # Verificando se o arquivo existe.
+        if os.path.exists(caminho):
+            if not os.path.isdir(caminho):
+                # Verificando se o usuário tem permissão para acessar o arquivo.
+                print("C: ", c)
+                if permissao_acesso(c, usuario):
+                    data['sucesso'] = True
+                    dir_bkp = os.getcwd()
+                    if c != '':
+                        os.chdir(c)
+                    data['conteudo'] = '/'.join([os.getcwd(), final])
+                    os.chdir(dir_bkp)
+                else:
+                    data['sucesso'] = False
+                    data['conteudo'] = "get: não foi possível obter estado de "+\
+                    caminho+": Permissão negada"
+            else:
+                data['sucesso'] = False
+                data['conteudo'] = "get: não foi possível obter estado de "+\
+                caminho+": É um diretório"
+        else:
+            data['sucesso'] = False
+            data['conteudo'] = "get: não foi possível obter estado de "+\
+                caminho+" Arquivo ou diretório inexistente"
+        return json.dumps(data)
 
-    def exposed_ls(self, caminho, json_usuario):
+    def ls(self, caminho, json_usuario):
 
         usuario = User().json_loads(json_usuario)
         # Sincronizando o diretório do processo com o do usuário.
@@ -101,7 +123,7 @@ class ServidorArquivos(rpyc.Service):
             print("Error: diretório ou arquivo "+caminho+" não encontrado.")
             return ("Error: diretório ou arquivo "+caminho+" não encontrado.")
 
-    def exposed_mkdir(self, caminho, json_usuario):
+    def mkdir(self, caminho, json_usuario):
 
         usuario = User().json_loads(json_usuario)
         # Sincronizando o diretório do processo com o do usuário.
@@ -153,7 +175,7 @@ class ServidorArquivos(rpyc.Service):
             return ("mkdir: não foi possível criar o diretório"+caminho +
                     "Arquivo existe")
 
-    def exposed_rmdir(self, caminho, json_usuario):
+    def rmdir(self, caminho, json_usuario):
 
         usuario = User().json_loads(json_usuario)
         # Sincronizando o diretório do processo com o do usuário.
@@ -229,7 +251,7 @@ class ServidorArquivos(rpyc.Service):
                 return ("rmdir: não foi possível remover o diretório"+caminho+
                         "Arquivo não encontrado.")
 
-    def exposed_rm(self, caminho):
+    def rm(self, caminho):
         # Se o arquivo ou diretório existir.
         if not os.path.exists(caminho):
             print(("Error: arquivo "+caminho+" não encontrado."))
@@ -243,7 +265,7 @@ class ServidorArquivos(rpyc.Service):
             else:
                 os.remove(caminho)
 
-    def exposed_teste(self):
+    def teste(self):
         print(dir(self))
         return "Servidor de arquivos funcionando corretamente."
 

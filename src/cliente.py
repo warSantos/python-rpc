@@ -28,6 +28,7 @@ class Cliente():
             if not data:
                 print("Conexão fechada pelo servidor.")
                 exit(1)
+                socket_con.close()
             retorno = json.loads(data)
             # Se o usuário foi autenticado.
             if retorno['aceito']:
@@ -52,6 +53,7 @@ class Cliente():
             if not data:
                 print("Conexão fechada pelo servidor.")
                 exit(1)
+                socket_con.close()
             # Lendo retorno do servidor.
             print(data)
             retorno = json.loads(data.decode())
@@ -71,7 +73,17 @@ class Cliente():
             elif retorno['comando'] == 'get':
                 # Se o arquivo existe e pode ser baixado.
                 if retorno['sucesso']:
-                    
+                    nome = retorno['conteudo'].split('/')[-1]
+                    pt = open(nome, 'wb')
+                    while True:
+                        texto = socket_con.recv(1024)
+                        if len(texto) < 1024:
+                            pt.write(texto.replace(b'\x00',b''))
+                            break
+                        pt.write(texto)
+                    pt.close()
+                else:
+                    print(retorno['conteudo'])
             # Interpreta o retorno do comando ls.
             elif retorno['comando'] == 'ls':
                 print(retorno['conteudo'])

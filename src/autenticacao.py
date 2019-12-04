@@ -4,9 +4,9 @@ import json
 import hashlib
 from sys import argv, exit
 
-class ServidorAutenticacao(rpyc.Service):
+class ServidorAutenticacao(rpyc.classic.ClassicService):
 
-    def exposed_criarUsuario(self, login, senha):
+    def criarUsuario(self, login, senha):
 
         if login == '' or senha == '':
             return ("O usuário e a senha não podem ser vazios.")
@@ -49,7 +49,7 @@ class ServidorAutenticacao(rpyc.Service):
     def decode_aut(self, texto):
         json.loads(texto)
 
-    def exposed_autenticar(self, login, resumo):
+    def autenticar(self, login, resumo):
         
         if login == '' or resumo == '':
             print("O usuário e a senha não podem ser vazios.")
@@ -85,7 +85,7 @@ class ServidorAutenticacao(rpyc.Service):
                 "Falha na autenticação. Usário inexistente.", False)
             return data
 
-    def exposed_teste(self):
+    def teste(self):
         return "Servidor de autenticação funcionando corretamente."
 
 if __name__=='__main__':
@@ -93,7 +93,7 @@ if __name__=='__main__':
     hostname = argv[1]
     servidor = ServidorAutenticacao()
     if hostname == 'root':
-        servidor.exposed_criarUsuario(hostname, argv[2])
+        servidor.criarUsuario(hostname, argv[2])
     else:
         porta = int(argv[2])
         servidor = rpyc.ThreadPoolServer(ServidorAutenticacao, \

@@ -77,7 +77,27 @@ class ServidorConexoes():
 
     def get(self, conn, usuario, servidor_rpc_ftp, conn_rpc_ftp, comandos):
         
-        
+        try:
+            # Removendo o comando get.
+            comandos.pop(0)
+            if len(comandos) == 0:
+                data = {
+                    "sucesso": False,
+                    "conteudo": "get: falta o operando arquivo"
+                }
+                conn.send(json.dumps(data).encode())
+            elif len(comandos) == 1:
+                servidor_rpc_ftp.get(conn, conn_rpc_ftp, comandos[0], usuario)
+            else:
+                data = {
+                    "sucesso": False,
+                    "conteudo": "get: excesso de parâmetros. Passe um arquivo por vez."
+                }
+                conn.send(json.dumps(data).encode())
+        except Exception as err:
+            print(str(err))
+            exit(1)
+
     def ls(self, conn, usuario, servidor_rpc_ftp, conn_rpc_ftp, comandos):
         try:
             # Removendo o comando ls.
@@ -211,7 +231,8 @@ class ServidorConexoes():
                     return
                 # Faz chamada de função do get no servidor de RPC de arquivos.
                 elif comandos[0] == 'get':
-                    print("Ola.")
+                    servidor.get(conn, usuario, servidor_rpc_ftp, \
+                        conn_rpc_ftp, comandos)
                 # Faz chamada de função do ls no servidor de RPC de arquivos.
                 elif comandos[0] == 'ls':
                     servidor.ls(conn, usuario, servidor_rpc_ftp, \

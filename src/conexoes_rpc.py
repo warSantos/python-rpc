@@ -1,10 +1,11 @@
 import re
 import rpyc
+import json
 import hashlib
 from base import get_opt
 from sys import argv, exit
 
-class ServidorConexeosRPC(rpyc.Service):
+class ServidorConexeosRPC(rpyc.classic.ClassicService):
 
     def help(self):
         print("Ajuda.")
@@ -22,14 +23,33 @@ class ServidorConexeosRPC(rpyc.Service):
     # Por padrão esta definido a porta utilizada pelo servidor de arquivos
     # em testes com uma máquina apenas.
     def conectar(self, hostname="127.0.0.1", porta=8001):
-        return rpyc.connect(hostname, porta)
+        return rpyc.classic.connect(hostname, porta)
     
     # Navega entre os diretórios do usuário.
     def cd(self, conexao, caminho, usuario):
         return conexao.root.cd(caminho, usuario.usuario_json())
 
-    def get(self, conn, arquivo, usuario):
-        return
+    def get(self, conn_clt, conexao, arquivo, usuario):
+        # Verificando se o arquivo existe e se o usuário tem permissão
+        # antes de iniciar o donwload do arquivo.
+        data = json.loads(conexao.root.get(arquivo, usuario.usuario_json()))
+        data['comando'] = 'get'
+        # Se o usuário tiver permissão e o arquivo existir.
+        if data['sucesso']:
+            conn_clt.send(json.dumps(data).encode())
+            print("ARQ: ",data['conteudo'])
+            fd = conexao.builtins.open(data['conteudo'],'rb')
+            texto = ''
+            while True:
+                t = fd.read(1024)
+                #print(t)
+                # Se acabar o conteúdo do arquivo pare de enviar.
+                if t == b'':
+                    conn_clt.send('\0'.encode())
+                    break
+                conn_clt.send(t)
+        else:
+            conn_clt.send(json.dumps(data).encode())
 
     # Lista os diretórios fazendo conexão com o servidor de arquivos.
     def ls(self, conexao, caminho, usuario):
