@@ -53,6 +53,10 @@ class ServidorArquivos(rpyc.Service):
                 ": Arquivo ou diretório inexistente"
             return json.dumps(data)
 
+    def exposed_get(self, arquivo, json_usuario):
+        print("Ola.")
+        
+
     def exposed_ls(self, caminho, json_usuario):
 
         usuario = User().json_loads(json_usuario)

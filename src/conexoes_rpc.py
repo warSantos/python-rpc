@@ -28,6 +28,9 @@ class ServidorConexeosRPC(rpyc.Service):
     def cd(self, conexao, caminho, usuario):
         return conexao.root.cd(caminho, usuario.usuario_json())
 
+    def get(self, conn, arquivo, usuario):
+        return
+
     # Lista os diretórios fazendo conexão com o servidor de arquivos.
     def ls(self, conexao, caminho, usuario):
         return conexao.root.ls(caminho, usuario.usuario_json())
