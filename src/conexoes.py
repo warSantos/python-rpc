@@ -256,9 +256,12 @@ class ServidorConexoes():
                         conn_rpc_ftp, comandos)
                 # Retorna erro (comando não encontrado).
                 else:
-                    print("error: comando "+comandos[0]+" não encontrado.")
-                    msg = "error: comando "+comandos[0]+" não encontrado."
-                    conn.send(msg.encode())
+                    resposta = {
+                        "comando": "None",
+                        "conteudo": "error: comando "+comandos[0]+" não encontrado."
+                    }
+                    print("TODO: error: comando "+comandos[0]+" não encontrado.")
+                    conn.send(json.dumps(resposta).encode())
 
     def iniciarServidor(self, ip_servidor_con, ip_servidor_ftp):
 

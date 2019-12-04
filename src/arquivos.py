@@ -43,16 +43,14 @@ class ServidorArquivos(rpyc.classic.ClassicService):
                 else:
                     data['sucesso'] = False
                     data['mensagem'] = "error: permissão negada.\n"
-                return json.dumps(data)
             else:
                 data['sucesso'] = False
                 data['mensagem'] = "bash: cd: "+caminho+": Não é um diretório"
-                return json.dumps(data)
         else:
             data['sucesso'] = False
             data['mensagem'] = "bash: cd: "+caminho + \
                 ": Arquivo ou diretório inexistente"
-            return json.dumps(data)
+        return json.dumps(data)
 
     #def get(self, arquivo, json_usuario):
     def get(self, caminho, json_usuario):

@@ -100,7 +100,7 @@ class Cliente():
                 print(retorno['conteudo'])
             # Trata entrada de comandos inexistentes.
             else:
-                print("Ola.")
+                print(retorno['conteudo'])
             # Atualizando o caminho no barra.
         socket_con.close()
 
