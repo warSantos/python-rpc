@@ -246,6 +246,7 @@ class ServidorConexoes():
                     conn.close()
                     exit(1)
                 else:
+                    print(data)
                     texto = data.decode()
                     comandos = texto.split()
                     # Faz chamada de função do cd no servidor de RPC de arquivos.

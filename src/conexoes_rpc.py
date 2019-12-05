@@ -45,8 +45,8 @@ class ServidorConexeosRPC(rpyc.classic.ClassicService):
             while True:
                 t = pt.read(1024)
                 # Se acabar o conteúdo do arquivo pare de enviar.
-                if t == b'':
-                    conn_clt.send('\0'.encode())
+                if len(t) < 1024:
+                    conn_clt.send(t+'\0'.encode())
                     break
                 conn_clt.send(t)
             pt.close()

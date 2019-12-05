@@ -106,8 +106,8 @@ class Cliente():
                         while True:
                             t = pt.read(1024)
                             # Se acabar o conteúdo do arquivo pare de enviar.
-                            if t == b'':
-                                socket_con.send('\0'.encode())
+                            if len(t) < 1024:
+                                socket_con.send(t+'\0'.encode())
                                 break
                             socket_con.send(t)
                         pt.close()
