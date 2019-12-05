@@ -1,4 +1,5 @@
 import os
+import ssl
 import rpyc
 import json
 import socket
@@ -25,6 +26,7 @@ class Cliente():
             texto = "login welton 123"
             socket_con.send(texto.encode())
             data = socket_con.recv(1024)
+            print(data)
             if not data:
                 print("Conexão fechada pelo servidor.")
                 exit(1)
@@ -105,14 +107,26 @@ class Cliente():
         socket_con.close()
 
     def conectar(self, ip_servidor_con):
-
+        
         # Porta padrão de conexão do servidor de conexões TCP com socket.
         porta = 8000
-        # Abrindo o socket para conexão com o servidor.
-        socket_con = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-        # Conecatando no servidor.
-        socket_con.connect((ip_servidor_con, porta))
+        # Criando contexto ssl para tunelamento do socket.
+        context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+
+        sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sock.connect((ip_servidor_con, porta))
+        socket_con = context.wrap_socket(sock, server_hostname=ip_servidor_con)
         return socket_con
+
+        #sock = socket.create_connection((ip_servidor_con, porta))
+        #socket_con = context.wrap_socket(sock, server_hostname=ip_servidor_con)
+        #return socket_con
+        #socket_con = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+       
+        ## Conecatando no servidor.
+        #socket_con = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        #socket_con.connect((ip_servidor_con, porta))
+        #return socket_con
 
     def help(self):
         print("Ajuda.")

@@ -1,5 +1,6 @@
 # import socket programming library
 import os
+import ssl
 import json
 import time
 import socket
@@ -198,70 +199,80 @@ class ServidorConexoes():
             print(str(err))
             exit(1)
 
-    def menu(self, conn):
+    def menu(self, socket_cliente):
+        try:
+            
+            # Criando contexto ssl para tunelamento do socket.
+            context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
+            context.load_cert_chain('certificados/server.crt', \
+                'certificados/no.pwd.server.key')
+            conn = context.wrap_socket(socket_cliente, server_side=True)
 
-        print("TODO: Iniciando servidor de escuta do cliente.", conn.getpeername())
-        servidor = ServidorConexoes() 
-        # Autenticando o usuário.
-        usuario = servidor.auntenticar(conn)
-        # Conectando o servidor de arquivos.
-        servidor_rpc_ftp = ServidorConexeosRPC()
-        conn_rpc_ftp = servidor_rpc_ftp.conectar()
-        # Alterando o diretório do usuário no servidor de arquivos para a home dele.
-        servidor.cd(conn, usuario, servidor_rpc_ftp, \
-                        conn_rpc_ftp, ["cd", usuario.dir_padrao])
-        # Menu de comandos.
-        while True:
-            data = conn.recv(1024)
-            if not data:
-                print("Cliente desconectado.", conn.getpeername())
-                conn.close()
-                exit(1)
-            else:
-                texto = data.decode()
-                comandos = texto.split()
-                # Faz chamada de função do cd no servidor de RPC de arquivos.
-                if comandos[0] == 'cd':
-                    servidor.cd(conn, usuario, servidor_rpc_ftp, \
-                        conn_rpc_ftp, comandos)
-                # Solicita desconecção com o servidor de conexões.
-                elif comandos[0] == 'disconectar':
+            print("TODO: Iniciando servidor de escuta do cliente.", conn.getpeername())
+            servidor = ServidorConexoes()
+            # Autenticando o usuário.
+            usuario = servidor.auntenticar(conn)
+            # Conectando o servidor de arquivos.
+            servidor_rpc_ftp = ServidorConexeosRPC()
+            conn_rpc_ftp = servidor_rpc_ftp.conectar()
+            # Alterando o diretório do usuário no servidor de arquivos para a home dele.
+            servidor.cd(conn, usuario, servidor_rpc_ftp, \
+                            conn_rpc_ftp, ["cd", usuario.dir_padrao])
+            # Menu de comandos.
+            while True:
+                data = conn.recv(1024)
+                if not data:
                     print("Cliente desconectado.", conn.getpeername())
                     conn.close()
-                    return
-                # Faz chamada de função do get no servidor de RPC de arquivos.
-                elif comandos[0] == 'get':
-                    servidor.get(conn, usuario, servidor_rpc_ftp, \
-                        conn_rpc_ftp, comandos)
-                # Faz chamada de função do ls no servidor de RPC de arquivos.
-                elif comandos[0] == 'ls':
-                    servidor.ls(conn, usuario, servidor_rpc_ftp, \
-                        conn_rpc_ftp, comandos)
-                elif comandos[0] == 'quit':
-                    print("quit.")
-                    conn.close()
-                elif comandos[0] == 'mkdir':
-                    print("Etapa 1: ", comandos)
-                    servidor.mkdir(conn, usuario, servidor_rpc_ftp, \
-                        conn_rpc_ftp, comandos)
-                # Faz chamada de função do put no servidor de RPC de arquivos.
-                elif comandos[0] == 'put':
-                    print("Ola.")
-                # Faz chamada de função do rm no servidor de RPC de arquivos.
-                elif comandos[0] == 'rm':
-                    print("Ola.")
-                # Faz chamada de função do rmdir no servidor de RPC de arquivos.
-                elif comandos[0] == 'rmdir':
-                    servidor.rmdir(conn, usuario, servidor_rpc_ftp, \
-                        conn_rpc_ftp, comandos)
-                # Retorna erro (comando não encontrado).
+                    exit(1)
                 else:
-                    resposta = {
-                        "comando": "None",
-                        "conteudo": "error: comando "+comandos[0]+" não encontrado."
-                    }
-                    print("TODO: error: comando "+comandos[0]+" não encontrado.")
-                    conn.send(json.dumps(resposta).encode())
+                    texto = data.decode()
+                    comandos = texto.split()
+                    # Faz chamada de função do cd no servidor de RPC de arquivos.
+                    if comandos[0] == 'cd':
+                        servidor.cd(conn, usuario, servidor_rpc_ftp, \
+                            conn_rpc_ftp, comandos)
+                    # Solicita desconecção com o servidor de conexões.
+                    elif comandos[0] == 'disconectar':
+                        print("Cliente desconectado.", conn.getpeername())
+                        conn.close()
+                        return
+                    # Faz chamada de função do get no servidor de RPC de arquivos.
+                    elif comandos[0] == 'get':
+                        servidor.get(conn, usuario, servidor_rpc_ftp, \
+                            conn_rpc_ftp, comandos)
+                    # Faz chamada de função do ls no servidor de RPC de arquivos.
+                    elif comandos[0] == 'ls':
+                        servidor.ls(conn, usuario, servidor_rpc_ftp, \
+                            conn_rpc_ftp, comandos)
+                    elif comandos[0] == 'quit':
+                        print("quit.")
+                        conn.close()
+                    elif comandos[0] == 'mkdir':
+                        print("Etapa 1: ", comandos)
+                        servidor.mkdir(conn, usuario, servidor_rpc_ftp, \
+                            conn_rpc_ftp, comandos)
+                    # Faz chamada de função do put no servidor de RPC de arquivos.
+                    elif comandos[0] == 'put':
+                        print("Ola.")
+                    # Faz chamada de função do rm no servidor de RPC de arquivos.
+                    elif comandos[0] == 'rm':
+                        print("Ola.")
+                    # Faz chamada de função do rmdir no servidor de RPC de arquivos.
+                    elif comandos[0] == 'rmdir':
+                        servidor.rmdir(conn, usuario, servidor_rpc_ftp, \
+                            conn_rpc_ftp, comandos)
+                    # Retorna erro (comando não encontrado).
+                    else:
+                        resposta = {
+                            "comando": "None",
+                            "conteudo": "error: comando "+comandos[0]+" não encontrado."
+                        }
+                        print("TODO: error: comando "+comandos[0]+" não encontrado.")
+                        conn.send(json.dumps(resposta).encode())
+        except Exception as err:
+            print(str(err))
+            exit(1)
 
     def iniciarServidor(self, ip_servidor_con, ip_servidor_ftp):
 
@@ -286,9 +297,10 @@ class ServidorConexoes():
         while True:
             # Estabiliza a conexão com o cliente.
             print("Servidor na escuta...")
-            socket_cliente, addr = socket_conexao.accept()
+            #socket_cliente, addr = socket_conexao.accept()
+            novo_sock, addr = socket_conexao.accept()
             # Inicia uma nova thread para atender o novo cliente.
-            res = pool_clientes.apply_async(self.menu, (socket_cliente,))
+            res = pool_clientes.apply_async(self.menu, (novo_sock,))
             resultados.append(res)
 
         # Fechando socket de escuta.
