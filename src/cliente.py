@@ -9,13 +9,14 @@ from sys import argv, exit
 # Importando módulos locais.
 from base import get_opt
 
+
 class Cliente():
 
     def criarUsuario(self):
         print("Olá.")
 
     def menu(self, ip_servidor_con):
-        
+
         # Abrindo conexão com o servidor.
         socket_con = Cliente().conectar(ip_servidor_con)
         # Criando um usuário para conexão.
@@ -41,12 +42,12 @@ class Cliente():
                 break
             else:
                 print(retorno['mensagem'])
-        
+
         # Recebendo dados do CD inicial no servidor.
         data = socket_con.recv(1024)
         retorno = json.loads(data.decode())
         usuario.dir_corrente = retorno['mensagem']
-        
+
         while True:
             prefixo = usuario.login+'@server:~'+usuario.dir_corrente+'$ '
             texto = input(prefixo)
@@ -63,10 +64,9 @@ class Cliente():
             if retorno['comando'] == 'cd':
                 if retorno['sucesso']:
                     usuario.dir_corrente = retorno['mensagem']
-                    print("NOVO DIR: ", usuario.dir_corrente)
                 else:
                     print(retorno['mensagem'])
-            # Interpreta o retorno do comando disconectar 
+            # Interpreta o retorno do comando disconectar
             # (vê se o server fechou também).
             elif retorno['comando'] == 'disconectar':
                 print("Ola.")
@@ -80,7 +80,7 @@ class Cliente():
                     while True:
                         texto = socket_con.recv(1024)
                         if len(texto) < 1024:
-                            pt.write(texto.replace(b'\x00',b''))
+                            pt.write(texto.replace(b'\x00', b''))
                             break
                         pt.write(texto)
                     pt.close()
@@ -93,7 +93,19 @@ class Cliente():
                 print(retorno['conteudo'])
             # Interpreta o retorno do comando put.
             elif retorno['comando'] == 'put':
-                print("Ola.")
+                if retorno['sucesso']:
+                    pt = open(retorno['conteudo'], 'rb')
+                    texto = ''
+                    while True:
+                        t = pt.read(1024)
+                        # Se acabar o conteúdo do arquivo pare de enviar.
+                        if t == b'':
+                            conn_clt.send('\0'.encode())
+                            break
+                        conn_clt.send(t)
+                    pt.close()
+                else:
+                    print(retorno['conteudo'])
             # Interpreta o retorno do comando rm.
             elif retorno['comando'] == 'rm':
                 print("Ola.")
@@ -107,7 +119,7 @@ class Cliente():
         socket_con.close()
 
     def conectar(self, ip_servidor_con):
-        
+
         # Porta padrão de conexão do servidor de conexões TCP com socket.
         porta = 8000
         # Criando contexto ssl para tunelamento do socket.
@@ -118,22 +130,13 @@ class Cliente():
         socket_con = context.wrap_socket(sock, server_hostname=ip_servidor_con)
         return socket_con
 
-        #sock = socket.create_connection((ip_servidor_con, porta))
-        #socket_con = context.wrap_socket(sock, server_hostname=ip_servidor_con)
-        #return socket_con
-        #socket_con = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
-       
-        ## Conecatando no servidor.
-        #socket_con = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        #socket_con.connect((ip_servidor_con, porta))
-        #return socket_con
-
     def help(self):
         print("Ajuda.")
         print("-c: Endereço do servidor de conexões.")
         print("python3 src/conexoes.py -c IP")
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
 
     # Recebendo parâmetros de entrada.
     opts = get_opt(argv[1:], "c:", help)

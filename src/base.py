@@ -28,14 +28,11 @@ def permissao_acesso(caminho, usuario):
     bkp_dir = os.getcwd()
     # Alterando o caminho para o novo diretório.
     os.chdir(caminho)
-    print("Autenticação: ", os.getcwd())
     # Pegando o novo diretório.
     novo_dir = os.getcwd()
     # Retornando para o diretório anterior ao CD.
     os.chdir(bkp_dir)
     # Se o usuário não saiu de sua home.
-    print("DIR padrão: ", usuario.dir_padrao)
-    print("NOVO dir: ", novo_dir)
     if novo_dir.find(usuario.dir_padrao) == 0:
         return True
     return False

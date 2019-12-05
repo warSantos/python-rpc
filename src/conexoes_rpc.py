@@ -6,6 +6,7 @@ import hashlib
 from base import get_opt
 from sys import argv, exit
 
+
 class ServidorConexeosRPC(rpyc.classic.ClassicService):
 
     def help(self):
@@ -24,9 +25,9 @@ class ServidorConexeosRPC(rpyc.classic.ClassicService):
     # Por padrão esta definido a porta utilizada pelo servidor de arquivos
     # em testes com uma máquina apenas.
     def conectar(self, hostname="127.0.0.1", porta=8001):
-        return rpyc.classic.ssl_connect(hostname, porta, \
-            ssl_version=ssl.PROTOCOL_TLSv1_2)
-    
+        return rpyc.classic.ssl_connect(hostname, porta,
+                                        ssl_version=ssl.PROTOCOL_TLSv1_2)
+
     # Navega entre os diretórios do usuário.
     def cd(self, conexao, caminho, usuario):
         return conexao.root.cd(caminho, usuario.usuario_json())
@@ -39,31 +40,52 @@ class ServidorConexeosRPC(rpyc.classic.ClassicService):
         # Se o usuário tiver permissão e o arquivo existir.
         if data['sucesso']:
             conn_clt.send(json.dumps(data).encode())
-            print("ARQ: ",data['conteudo'])
-            fd = conexao.builtins.open(data['conteudo'],'rb')
+            pt = conexao.builtins.open(data['conteudo'], 'rb')
             texto = ''
             while True:
-                t = fd.read(1024)
+                t = pt.read(1024)
                 # Se acabar o conteúdo do arquivo pare de enviar.
                 if t == b'':
                     conn_clt.send('\0'.encode())
                     break
                 conn_clt.send(t)
+            pt.close()
         else:
             conn_clt.send(json.dumps(data).encode())
 
     # Lista os diretórios fazendo conexão com o servidor de arquivos.
     def ls(self, conexao, caminho, usuario):
         return conexao.root.ls(caminho, usuario.usuario_json())
-    
+
     def mkdir(self, conexao, caminho, usuario):
         return conexao.root.mkdir(caminho, usuario.usuario_json())
+
+    def put(self, conn_clt, conexao, caminhos, usuario):
+
+        # Verificando se o diretório existe no servidor e se o usuário
+        # tem permissão para escrever nele.
+        data = json.loads(conexao.root.put(arquivo, usuario.usuario_json()))
+        data['comando'] = 'put'
+        if data['sucesso']:
+            conn_clt.send(json.dumps(data).encode())
+            # Criando arquivo no destinatário.
+            pt = conexao.builtins.open(comandos[1], 'wb')
+            while True:
+                texto = conn_clt.recv(1024)
+                if len(texto) < 1024:
+                    pt.write(texto.replace(b'\x00', b''))
+                    break
+                pt.write(texto)
+            pt.close()
+        else:
+            conn_clt.send(json.dumps(data).encode())
 
     def rmdir(self, conexao, caminho, usuario):
         return conexao.root.rmdir(caminho, usuario.usuario_json())
 
     def rm(self, conexao, caminho, usuario):
         return conexao.root.rm(caminho, usuario.usuario_json())
+
 
 if __name__ == "__main__":
     servidor = ServidorConexeosRPC()

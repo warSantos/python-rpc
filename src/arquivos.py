@@ -29,17 +29,15 @@ class ServidorArquivos(rpyc.classic.ClassicService):
         # Atualizando o diretório do processo com o do cliente.
         data = {}
         # Se o arquivo existir e for um diretório.
-        print("Antes destino:", caminho, "Antes SO:", os.getcwd())
         os.chdir(usuario.dir_corrente)
         if os.path.exists(caminho):
             if os.path.isdir(caminho):
                 # Se o usuário poder acessar esse diretório
                 if permissao_acesso(caminho, usuario):
                     data['sucesso'] = True
+                    # Sicronizando o diretório com o usuário.
                     os.chdir(caminho)
                     data['mensagem'] = os.getcwd()
-                    # Sicronizando o diretório com o usuário.
-                    print("Depois: ", caminho, os.getcwd(), '\n\n')
                 # Se o usuário não tiver permissão.
                 else:
                     data['sucesso'] = False
@@ -53,7 +51,6 @@ class ServidorArquivos(rpyc.classic.ClassicService):
                 ": Arquivo ou diretório inexistente"
         return json.dumps(data)
 
-    #def get(self, arquivo, json_usuario):
     def get(self, caminho, json_usuario):
         
         usuario = User().json_loads(json_usuario)
@@ -67,7 +64,6 @@ class ServidorArquivos(rpyc.classic.ClassicService):
         if os.path.exists(caminho):
             if not os.path.isdir(caminho):
                 # Verificando se o usuário tem permissão para acessar o arquivo.
-                print("C: ", c)
                 if permissao_acesso(c, usuario):
                     data['sucesso'] = True
                     dir_bkp = os.getcwd()
@@ -174,6 +170,36 @@ class ServidorArquivos(rpyc.classic.ClassicService):
             return ("mkdir: não foi possível criar o diretório"+caminho +
                     "Arquivo existe")
 
+    def put(self, caminho, json_usuario):
+
+        usuario = User().json_loads(json_usuario)
+        # Atualizando o diretório do processo com o do cliente.
+        os.chdir(usuario.dir_corrente)
+        data = {}
+        # Se o caminho for absoluto.
+        if caminho[0] == '/':
+            # Verificando se o usuário ter permissão no caminho
+            tokens = caminho.split('/')
+            # Removendo possíveis ''
+            if len(tokens[-1]) == 0:
+                tokens.pop()
+            while len(tokens) > 0:
+                c = '/'+'/'.join(tokens)
+                # Se o caminho existir.
+                if os.path.exists(c):
+                    # Se o usuário tiver permissão.
+                    if permissao_acesso(c, usuario):
+                        
+                    else:
+                        return ("put: não foi possível criar o diretório " +
+                                caminho+" Permissão negada")
+                tokens.pop()
+        # Se o caminho for relativo.
+
+        # Se o caminho for relativo.
+        else:
+
+
     def rmdir(self, caminho, json_usuario):
 
         usuario = User().json_loads(json_usuario)
@@ -265,7 +291,6 @@ class ServidorArquivos(rpyc.classic.ClassicService):
                 os.remove(caminho)
 
     def teste(self):
-        print(dir(self))
         return "Servidor de arquivos funcionando corretamente."
 
 

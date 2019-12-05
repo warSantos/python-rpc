@@ -144,8 +144,36 @@ class ServidorConexoes():
             exit(1)
 
     def put(self, conn, usuario, servidor_rpc_ftp, conn_rpc_ftp, comandos):
-        print("Ola.")
+        
+        try:
+            data = {}
+            # Removendo o comando mkdir.
+            comandos.pop(0)
+            if len(comandos) == 0:
+                data['sucesso'] = False
+                data['conteudo'] = "put: falta o operando arquivo.\n"+\
+                    "\tusage: put caminho/arquivo_local caminho_remoto/nome_arquivo"
+            elif len(comandos) > 2:
+                data['sucesso'] = False
+                data['conteudo'] = "bash: put: número excessivo de argumentos\n"+\
+                    "\tusage: put caminho/arquivo_local caminho_remoto/nome_arquivo"
+            else:
+                if len(comandos) == 1:
+                    nome = comandos[0].split('/')[-1]
+                    comandos.append([usuario.dir_corrente+'/'+nome])
+                # Se o arquivo de origem existir.
+                if os.path.exists(comandos[0]):
+                    servidor_rpc_ftp.put(conn, conn_rpc_ftp, comandos, usuario)
+                else:
+                    data['sucesso'] = False
+                    data['conteudo'] = "cp: não foi possível obter estado de "+comandos[0]+\
+                        "Arquivo ou diretório inexistente\n"+\
+                        "\tusage: put caminho/arquivo_local caminho_remoto/nome_arquivo"
+            conn.send(json.dumps(data).encode())
 
+        except Exception as err:
+            print(str(err))
+            exit(1)
 
     def rmdir(self, conn, usuario, servidor_rpc_ftp, conn_rpc_ftp, comandos):
 
@@ -183,7 +211,6 @@ class ServidorConexoes():
             if len(comandos) == 1:
                 data = json.loads(servidor_rpc_ftp.cd(conn_rpc_ftp, comandos[0], \
                     usuario))
-                print("Retornou o dado.", data)
                 # Se o diretório existe e ocorreu sucesso no comando
                 if data["sucesso"]:
                     usuario.dir_corrente = data['mensagem']
@@ -201,7 +228,6 @@ class ServidorConexoes():
 
     def menu(self, socket_cliente):
         try:
-            
             # Criando contexto ssl para tunelamento do socket.
             context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
             context.load_cert_chain('certificados/server.crt', \
