@@ -101,7 +101,7 @@ class Cliente():
                     else:
                         retorno['confirmado'] = True
                         socket_con.send(json.dumps(retorno).encode())
-                        pt = open(retorno['conteudo'], 'rb')
+                        pt = open(retorno['origem'], 'rb')
                         texto = ''
                         while True:
                             t = pt.read(1024)

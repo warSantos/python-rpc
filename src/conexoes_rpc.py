@@ -67,8 +67,11 @@ class ServidorConexeosRPC(rpyc.classic.ClassicService):
         data = json.loads(conexao.root.put(caminhos, usuario.usuario_json()))
         data['comando'] = 'put'
         if data['sucesso']:
+            data['origem'] = caminhos[0]
+            print(data)
             conn_clt.send(json.dumps(data).encode())
             retorno = json.loads(conn_clt.recv(1024))
+            print(retorno)
             if retorno['confirmado']:
                 # Criando arquivo no destinatário.
                 pt = conexao.builtins.open(data['conteudo'], 'wb')

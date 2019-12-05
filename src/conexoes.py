@@ -153,24 +153,18 @@ class ServidorConexoes():
                 data['sucesso'] = False
                 data['conteudo'] = "put: falta o operando arquivo.\n"+\
                     "\tusage: put caminho/arquivo_local caminho_remoto/nome_arquivo"
+                conn.send(json.dumps(data).encode())
             elif len(comandos) > 2:
                 data['sucesso'] = False
                 data['conteudo'] = "bash: put: número excessivo de argumentos\n"+\
                     "\tusage: put caminho/arquivo_local caminho_remoto/nome_arquivo"
+                conn.send(json.dumps(data).encode())
             else:
                 if len(comandos) == 1:
                     nome = comandos[0].split('/')[-1]
-                    comandos.append([usuario.dir_corrente+'/'+nome])
-                # Se o arquivo de origem existir.
-                if os.path.exists(comandos[0]):
-                    servidor_rpc_ftp.put(conn, conn_rpc_ftp, comandos, usuario)
-                else:
-                    data['sucesso'] = False
-                    data['conteudo'] = "cp: não foi possível obter estado de "+comandos[0]+\
-                        "Arquivo ou diretório inexistente\n"+\
-                        "\tusage: put caminho/arquivo_local caminho_remoto/nome_arquivo"
-            conn.send(json.dumps(data).encode())
-
+                    comandos.append(usuario.dir_corrente+'/'+nome)
+                print(comandos)
+                servidor_rpc_ftp.put(conn, conn_rpc_ftp, comandos, usuario)
         except Exception as err:
             print(str(err))
             exit(1)
@@ -280,7 +274,8 @@ class ServidorConexoes():
                             conn_rpc_ftp, comandos)
                     # Faz chamada de função do put no servidor de RPC de arquivos.
                     elif comandos[0] == 'put':
-                        print("Ola.")
+                        servidor.put(conn, usuario, servidor_rpc_ftp, \
+                            conn_rpc_ftp, comandos)
                     # Faz chamada de função do rm no servidor de RPC de arquivos.
                     elif comandos[0] == 'rm':
                         print("Ola.")

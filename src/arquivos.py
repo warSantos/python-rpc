@@ -174,11 +174,11 @@ class ServidorArquivos(rpyc.classic.ClassicService):
 
         origem = caminhos[0]
         destino = caminhos[1]
+        print(caminhos)
         usuario = User().json_loads(json_usuario)
         # Atualizando o diretório do processo com o do cliente.
         os.chdir(usuario.dir_corrente)
         data = {}
-        data['origem'] = origem
         # Se o caminho for absoluto.
         if destino == '/':
             tokens = destino.split('/')
@@ -211,12 +211,12 @@ class ServidorArquivos(rpyc.classic.ClassicService):
                             # Se o arquivo não existe o diretório também.
                             else:
                                 data['sucesso'] = False
-                                data['conteudo'] = "put: não foi possível criar arquivo comum"+destino +\
+                                data['conteudo'] = "put: não foi possível criar arquivo comum "+destino +\
                                     ": Arquivo ou diretório inexistente."
                     else:
                         data['sucesso'] = False
-                        data['conteudo'] = "put: não foi possível criar o diretório " +\
-                                destino+" Permissão negada")
+                        data['conteudo'] = "put: não foi possível criar o diretório "+\
+                            destino+" Permissão negada"
                 tokens.pop()
         # Se o destinor relativo.
         else:
@@ -226,15 +226,15 @@ class ServidorArquivos(rpyc.classic.ClassicService):
                 tokens.pop()
             for t in tokens:
                 # Se o diretório t existir.
-                if os.path.exists(t):
+                if os.path.exists(t) and os.path.isdir(t):
                     # Entre e veja se o usuário tem permissão.
                     if permissao_acesso(t, usuario):
                         os.chdir(t)
                     # Se em algum momento o usuário não tiver permissão.
                     else:
                         data['sucesso']=False
-                        data['conteudo']="put: não foi possível transferir " +
-                                caminho+" Permissão negada")
+                        data['conteudo']="put: não foi possível transferir "+\
+                                caminho+" Permissão negada"
             # Se o usuário pode acessar todos os diretórios com permissão.
             if os.path.exists(destino):
                 data['sucesso']=True
