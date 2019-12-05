@@ -64,19 +64,21 @@ class ServidorConexeosRPC(rpyc.classic.ClassicService):
 
         # Verificando se o diretório existe no servidor e se o usuário
         # tem permissão para escrever nele.
-        data = json.loads(conexao.root.put(arquivo, usuario.usuario_json()))
+        data = json.loads(conexao.root.put(caminhos, usuario.usuario_json()))
         data['comando'] = 'put'
         if data['sucesso']:
             conn_clt.send(json.dumps(data).encode())
-            # Criando arquivo no destinatário.
-            pt = conexao.builtins.open(comandos[1], 'wb')
-            while True:
-                texto = conn_clt.recv(1024)
-                if len(texto) < 1024:
-                    pt.write(texto.replace(b'\x00', b''))
-                    break
-                pt.write(texto)
-            pt.close()
+            retorno = json.loads(conn_clt.recv(1024))
+            if retorno['confirmado']:
+                # Criando arquivo no destinatário.
+                pt = conexao.builtins.open(data['conteudo'], 'wb')
+                while True:
+                    texto = conn_clt.recv(1024)
+                    if len(texto) < 1024:
+                        pt.write(texto.replace(b'\x00', b''))
+                        break
+                    pt.write(texto)
+                pt.close()
         else:
             conn_clt.send(json.dumps(data).encode())
 

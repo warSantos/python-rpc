@@ -92,18 +92,25 @@ class Cliente():
             elif retorno['comando'] == 'mkdir':
                 print(retorno['conteudo'])
             # Interpreta o retorno do comando put.
-            elif retorno['comando'] == 'put':
+            elif retorno['comando'] == 'put':    
                 if retorno['sucesso']:
-                    pt = open(retorno['conteudo'], 'rb')
-                    texto = ''
-                    while True:
-                        t = pt.read(1024)
-                        # Se acabar o conteúdo do arquivo pare de enviar.
-                        if t == b'':
-                            conn_clt.send('\0'.encode())
-                            break
-                        conn_clt.send(t)
-                    pt.close()
+                    # Se o arquivo a ser transferido não existe.
+                    if not os.path.exists(retorno['origem']):
+                        retorno['confirmado'] = False
+                        socket_con.send(json.dumps(retorno).encode())
+                    else:
+                        retorno['confirmado'] = True
+                        socket_con.send(json.dumps(retorno).encode())
+                        pt = open(retorno['conteudo'], 'rb')
+                        texto = ''
+                        while True:
+                            t = pt.read(1024)
+                            # Se acabar o conteúdo do arquivo pare de enviar.
+                            if t == b'':
+                                socket_con.send('\0'.encode())
+                                break
+                            socket_con.send(t)
+                        pt.close()
                 else:
                     print(retorno['conteudo'])
             # Interpreta o retorno do comando rm.
