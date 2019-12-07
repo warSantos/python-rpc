@@ -38,7 +38,7 @@ class Cliente():
                 cmd, login, _ = texto.split()
                 usuario.status = retorno['aceito']
                 usuario.login = login
-                usuario.dir_corrente = os.getcwd()+'/home/'+login
+                usuario.dir_corrente = retorno['user_home']
                 break
             else:
                 print(retorno['mensagem'])
@@ -95,9 +95,11 @@ class Cliente():
             elif retorno['comando'] == 'put':    
                 if retorno['sucesso']:
                     # Se o arquivo a ser transferido não existe.
-                    if not os.path.exists(retorno['origem']):
+                    if not os.path.exists(retorno['origem']) or \
+                        os.path.isdir(retorno['origem']):
                         retorno['confirmado'] = False
                         socket_con.send(json.dumps(retorno).encode())
+                        print("put: error: Arquivo não existe ou é um diretório.")
                     else:
                         retorno['confirmado'] = True
                         socket_con.send(json.dumps(retorno).encode())

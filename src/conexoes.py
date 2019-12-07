@@ -46,12 +46,13 @@ class ServidorConexoes():
                         # Se a conexão foi realizada com sucesso.
                         if resposta['aceito']:
                             # Retornando json com confirmação de autenticação.
-                            conn.send(r_json.encode())
                             # Configurando o usuário.
                             usuario.login = comandos[0]
                             usuario.status = True
                             usuario.dir_corrente = os.getcwd()+'/home/'+comandos[0]
                             usuario.dir_padrao = os.getcwd()+'/home/'+comandos[0]
+                            resposta['user_home'] = os.getcwd()+'/home/'+comandos[0]
+                            conn.send(json.dumps(resposta).encode())
                             break
                         else:
                             tentativas -= 1
