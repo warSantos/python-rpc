@@ -19,6 +19,7 @@ def get_opt(texto, parametros, funcao_help):
     except getopt.GetoptError as err:
         print(str(err))
         funcao_help()
+        exit(1)
 
 def permissao_acesso(caminho, usuario):
 

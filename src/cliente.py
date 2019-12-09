@@ -142,15 +142,15 @@ class Cliente():
         socket_con = context.wrap_socket(sock, server_hostname=ip_servidor_con)
         return socket_con
 
-    def help(self):
+    def ajuda(self):
         print("Ajuda.")
-        print("-c: Endereço do servidor de conexões.")
+        print("-c: Endereço IP do servidor de conexões.")
         print("python3 src/conexoes.py -c IP")
 
 
 if __name__ == '__main__':
 
     # Recebendo parâmetros de entrada.
-    opts = get_opt(argv[1:], "c:", help)
+    opts = get_opt(argv[1:], "c:",Cliente().ajuda)
     clnt = Cliente()
     clnt.menu(opts['-c'])
