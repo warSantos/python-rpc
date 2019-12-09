@@ -48,10 +48,10 @@ class ServidorAutenticacao(rpyc.classic.ClassicService):
             print("Usuário: "+login+" pronto para uso.")
 
     # Converte um dicionário de autenticação em um json string.
-    def encode_aut(self, mensagem, aceito=False):
+    def encode_aut(self, conteudo, aceito=False):
 
         data = {}
-        data['mensagem'] = mensagem
+        data['conteudo'] = conteudo
         data['aceito'] = aceito
         return json.dumps(data)
 
