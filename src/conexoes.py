@@ -37,7 +37,7 @@ class ServidorConexoes():
                     comandos.pop(0)
                     if len(comandos) != 2:
                         r_json = json.dumps(
-                            {"aceito": False, "mensagem": "Quantidade de parâmetros inválida."})
+                            {"aceito": False, "conteudo": "Quantidade de parâmetros inválida."})
                         conn.send(r_json.encode())
                     else:
                         r_json = servidor_rpc_aut.autenticar(
@@ -58,7 +58,7 @@ class ServidorConexoes():
                             tentativas -= 1
                             if tentativas == 0:
                                 tentativas = 3
-                                resposta['mensagem'] = resposta['mensagem'] + \
+                                resposta['conteudo'] = resposta['conteudo'] + \
                                     ' Número máximo de tentativas seguidas atingido.\n' + \
                                     ' Aguarde 5 segundos e tente novamente.\n'
                                 r_json = json.dumps(resposta)
@@ -70,7 +70,7 @@ class ServidorConexoes():
                     print("Usuário ainda não autenticado.")
                     data_resposta = {}
                     data_resposta['aceito'] = False
-                    data_resposta['mensagem'] = "Usuário ainda não autenticado."
+                    data_resposta['conteudo'] = "Usuário ainda não autenticado."
                     conn.send(json.dumps(data_resposta).encode())
             return usuario
         except Exception as err:
@@ -164,7 +164,6 @@ class ServidorConexoes():
                 if len(comandos) == 1:
                     nome = comandos[0].split('/')[-1]
                     comandos.append(usuario.dir_corrente+'/'+nome)
-                print(comandos)
                 servidor_rpc_ftp.put(conn, conn_rpc_ftp, comandos, usuario)
         except Exception as err:
             print(str(err))
@@ -208,14 +207,14 @@ class ServidorConexoes():
                     usuario))
                 # Se o diretório existe e ocorreu sucesso no comando
                 if data["sucesso"]:
-                    usuario.dir_corrente = data['mensagem']
+                    usuario.dir_corrente = data['conteudo']
                 data['comando'] = 'cd'
                 conn.send(json.dumps(data).encode())
             else:
                 data = {}
                 data['comando'] = 'cd'
                 data['sucesso'] = False
-                data['mensagem'] = "bash: cd: número excessivo de argumentos"
+                data['conteudo'] = "bash: cd: número excessivo de argumentos"
                 conn.send(json.dumps(data).encode())
         except Exception as err:
             print(str(err))
@@ -229,7 +228,7 @@ class ServidorConexoes():
                 'certificados/no.pwd.server.key')
             conn = context.wrap_socket(socket_cliente, server_side=True)
 
-            print("TODO: Iniciando servidor de escuta do cliente.", conn.getpeername())
+            print("Iniciando servidor de escuta do cliente.", conn.getpeername())
             servidor = ServidorConexoes()
             # Autenticando o usuário.
             usuario = servidor.auntenticar(conn)
@@ -254,11 +253,6 @@ class ServidorConexoes():
                     if comandos[0] == 'cd':
                         servidor.cd(conn, usuario, servidor_rpc_ftp, \
                             conn_rpc_ftp, comandos)
-                    # Solicita desconecção com o servidor de conexões.
-                    elif comandos[0] == 'disconectar':
-                        print("Cliente desconectado.", conn.getpeername())
-                        conn.close()
-                        return
                     # Faz chamada de função do get no servidor de RPC de arquivos.
                     elif comandos[0] == 'get':
                         servidor.get(conn, usuario, servidor_rpc_ftp, \
@@ -273,8 +267,9 @@ class ServidorConexoes():
                         }
                         conn.send(json.dumps(resposta).encode())
                         conn.shutdown(socket.SHUT_RDWR)
+                        print("Cliente desconectado.", conn.getpeername())
+                        exit(1)
                     elif comandos[0] == 'mkdir':
-                        print("Etapa 1: ", comandos)
                         servidor.mkdir(conn, usuario, servidor_rpc_ftp, \
                             conn_rpc_ftp, comandos)
                     # Faz chamada de função do put no servidor de RPC de arquivos.
@@ -294,7 +289,6 @@ class ServidorConexoes():
                             "comando": "None",
                             "conteudo": "error: comando "+comandos[0]+" não encontrado."
                         }
-                        print("TODO: error: comando "+comandos[0]+" não encontrado.")
                         conn.send(json.dumps(resposta).encode())
         except Exception as err:
             print(str(err))

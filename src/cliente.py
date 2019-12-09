@@ -38,12 +38,12 @@ class Cliente():
                 usuario.dir_corrente = retorno['user_home']
                 break
             else:
-                print(retorno['mensagem'])
+                print(retorno['conteudo'])
 
         # Recebendo dados do CD inicial no servidor.
         data = socket_con.recv(1024)
         retorno = json.loads(data.decode())
-        usuario.dir_corrente = retorno['mensagem']
+        usuario.dir_corrente = retorno['conteudo']
 
         while True:
             prefixo = usuario.login+'@server:~'+usuario.dir_corrente+'$ '
@@ -60,9 +60,9 @@ class Cliente():
             # Interpreta o retorno do comando cd.
             if retorno['comando'] == 'cd':
                 if retorno['sucesso']:
-                    usuario.dir_corrente = retorno['mensagem']
+                    usuario.dir_corrente = retorno['conteudo']
                 else:
-                    print(retorno['mensagem'])
+                    print(retorno['conteudo'])
             # Interpreta o retorno do comando disconectar
             # (vê se o server fechou também).
             elif retorno['comando'] == 'disconectar':

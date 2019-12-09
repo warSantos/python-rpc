@@ -9,12 +9,6 @@ from sys import argv, exit
 
 class ServidorConexeosRPC(rpyc.classic.ClassicService):
 
-    def ajuda(self):
-        print("Ajuda.")
-        print("-c: Endereço do servidor de conexões.")
-        print("-f: Endereço do servidor de arquivos.")
-        print("python3 src/conexoes_rpc.py -c IP -f IP")
-
     # Auntentica usuário no servidor de autenticação.
     def autenticar(self, login, senha, hostname="192.168.0.109", porta=8002):
         resumo = hashlib.sha256(senha.encode()).hexdigest()

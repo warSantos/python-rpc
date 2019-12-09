@@ -36,17 +36,17 @@ class ServidorArquivos(rpyc.classic.ClassicService):
                     data['sucesso'] = True
                     # Sicronizando o diretório com o usuário.
                     os.chdir(caminho)
-                    data['mensagem'] = os.getcwd()
+                    data['conteudo'] = os.getcwd()
                 # Se o usuário não tiver permissão.
                 else:
                     data['sucesso'] = False
-                    data['mensagem'] = "error: permissão negada.\n"
+                    data['conteudo'] = "error: permissão negada.\n"
             else:
                 data['sucesso'] = False
-                data['mensagem'] = "bash: cd: "+caminho+": Não é um diretório"
+                data['conteudo'] = "bash: cd: "+caminho+": Não é um diretório"
         else:
             data['sucesso'] = False
-            data['mensagem'] = "bash: cd: "+caminho + \
+            data['conteudo'] = "bash: cd: "+caminho + \
                 ": Arquivo ou diretório inexistente"
         return json.dumps(data)
 
