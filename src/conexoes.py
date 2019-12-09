@@ -55,6 +55,7 @@ class ServidorConexoes():
                             cbase = sftp.os_path(conn_ftp)
                             usuario.dir_corrente = cbase+'/home/'+comandos[0]
                             usuario.dir_padrao = cbase+'/home/'+comandos[0]
+                            usuario.grupo_root = resposta['grupo_root']
                             resposta['user_home'] = cbase+'/home/'+comandos[0]
                             conn.send(json.dumps(resposta).encode())
                             break
@@ -336,7 +337,7 @@ class ServidorConexoes():
 
     def ajuda(self):
         print("Ajuda.")
-        print("-c: Endereço do servidor de conexões.")
+        print("-a: Endereço do servidor de autenticação.")
         print("-f: Endereço do servidor de arquivos.")
         print("python3 src/conexoes.py -c IP -f IP")
 
@@ -344,5 +345,5 @@ class ServidorConexoes():
 if __name__ == '__main__':
 
     servidor = ServidorConexoes()
-    opts = get_opt(argv[1:], "c:f:", servidor.ajuda)
-    servidor.iniciarServidor(opts['-c'], opts['-f'])
+    opts = get_opt(argv[1:], "a:f:", servidor.ajuda)
+    servidor.iniciarServidor(opts['-a'], opts['-f'])

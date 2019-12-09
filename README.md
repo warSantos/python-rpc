@@ -5,7 +5,7 @@
 #### Para configurar o ambiente execute o arquivos config.sh
 $ ./config.sh
 
-### Para colocar em funcionamento, primeiro deve-se ativar o ambiente virtual.
+### Para colocar em funcionamento qualquer servidor, primeiro deve-se ativar o ambiente virtual.
 $ source ambiente/bin/activate
 
 ### Para ativar o servidor de arquivos.
@@ -15,9 +15,9 @@ $ python3 src/arquivos.py
 $ python3 src/autenticação.py
 
 ### Para ativar o servidor de conexões.
-$ python3 src/conexoes.py
-
-### Para ativar o cliente
+$ python3 src/conexoes.py -a IP_SERVER_AUTH -f IP_SERVER_FTP
 
 ### Criar usuário ROOT. Para criar o usuário root deve-se executar o seguinte comando.
 $ python3 src/autenticacao.py root password
+
+### O password padrão para o usuário root é 123

@@ -48,11 +48,12 @@ class ServidorAutenticacao(rpyc.classic.ClassicService):
             print("Usuário: "+login+" pronto para uso.")
 
     # Converte um dicionário de autenticação em um json string.
-    def encode_aut(self, conteudo, aceito=False):
+    def encode_aut(self, conteudo, aceito=False, perm=False):
 
         data = {}
         data['conteudo'] = conteudo
         data['aceito'] = aceito
+        data['grupo_root'] = perm
         return json.dumps(data)
 
     # TODO: verificar se realmente vai percisar desse método.
@@ -64,35 +65,39 @@ class ServidorAutenticacao(rpyc.classic.ClassicService):
         if login == '' or resumo == '':
             print("O usuário e a senha não podem ser vazios.")
             data = ServidorAutenticacao().encode_aut( \
-                "O usuário e a senha não podem ser vazios.", False)
+                "O usuário e a senha não podem ser vazios.")
             return data
         if len(login) > 50:
             data = ServidorAutenticacao().encode_aut( \
-                "O login deve conter no máximo 50 caracteres.", False)
+                "O login deve conter no máximo 50 caracteres.")
             return data
         else:
             # Verificando se o login contém caracteres especiais.
             regex = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
             if regex.search(login) != None:
-                print("O login deve conter somente letras e números.")
-                return (False)
+                data = ServidorAutenticacao().encode_aut( \
+                "O login deve conter somente letras e números.")
+                return data
             pt = open('banco/logins.txt', 'r')
             for tupla in pt:
-                usuario, resumo_bd = tupla.split(':')
+                usuario, resumo_bd, grupo_root = tupla.split(':')
                 # Verificando se o login existe na base de dados.
                 if usuario == login:
                     # Se o usuário existir compare a senha dele.
                     if resumo == resumo_bd.replace('\n',''):
+                        perm_root =  False
+                        if grupo_root == 'True':
+                            perm_root = True
                         data = ServidorAutenticacao().encode_aut( \
-                            "Usuário autenticado.", True)
+                            "Usuário autenticado.", True, perm_root)
                         return data
                     else:
                         data = ServidorAutenticacao().encode_aut( \
-                            "Falha na aunteticação. Senha incorreta.", False)
+                            "Falha na aunteticação. Senha incorreta.")
                         return data
             pt.close()
             data = ServidorAutenticacao().encode_aut( \
-                "Falha na autenticação. Usário inexistente.", False)
+                "Falha na autenticação. Usário inexistente.")
             return data
 
     def teste(self):
@@ -113,7 +118,6 @@ if __name__=='__main__':
     if hostname == 'root':
         servidor.criarUsuario(hostname, argv[2])
     else:
-        porta = int(argv[2])
         aut = rpyc.utils.authenticators.SSLAuthenticator( \
             'certificados/no.pwd.server.key', \
             'certificados/server.crt', ssl_version=ssl.PROTOCOL_TLSv1_2)
