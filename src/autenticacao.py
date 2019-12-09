@@ -80,14 +80,15 @@ class ServidorAutenticacao(rpyc.classic.ClassicService):
                 return data
             pt = open('banco/logins.txt', 'r')
             for tupla in pt:
-                usuario, resumo_bd, grupo_root = tupla.split(':')
+                usuario, resumo_bd, grupo_root = tupla.replace('\n','').split(':')
                 # Verificando se o login existe na base de dados.
                 if usuario == login:
                     # Se o usuário existir compare a senha dele.
-                    if resumo == resumo_bd.replace('\n',''):
+                    if resumo == resumo_bd:
                         perm_root =  False
                         if grupo_root == 'True':
                             perm_root = True
+                        print("GROOT: ", grupo_root, perm_root)
                         data = ServidorAutenticacao().encode_aut( \
                             "Usuário autenticado.", True, perm_root)
                         return data
