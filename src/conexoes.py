@@ -268,8 +268,11 @@ class ServidorConexoes():
                         servidor.ls(conn, usuario, servidor_rpc_ftp, \
                             conn_rpc_ftp, comandos)
                     elif comandos[0] == 'quit':
-                        print("quit.")
-                        conn.close()
+                        resposta = {
+                            "comando": "quit"
+                        }
+                        conn.send(json.dumps(resposta).encode())
+                        conn.shutdown(socket.SHUT_RDWR)
                     elif comandos[0] == 'mkdir':
                         print("Etapa 1: ", comandos)
                         servidor.mkdir(conn, usuario, servidor_rpc_ftp, \

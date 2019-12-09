@@ -91,8 +91,11 @@ class Cliente():
                 print(retorno['conteudo'])
             elif retorno['comando'] == 'mkdir':
                 print(retorno['conteudo'])
+            elif retorno['comando'] == 'quit':
+                socket_con.shutdown(socket.SHUT_RDWR)
+                exit(0)
             # Interpreta o retorno do comando put.
-            elif retorno['comando'] == 'put':    
+            elif retorno['comando'] == 'put':
                 if retorno['sucesso']:
                     # Se o arquivo a ser transferido não existe.
                     if not os.path.exists(retorno['origem']) or \

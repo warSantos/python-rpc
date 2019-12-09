@@ -5,6 +5,9 @@ import json
 import hashlib
 from sys import argv, exit
 
+# Importando módulos locais.
+from base import get_opt
+
 class ServidorAutenticacao(rpyc.classic.ClassicService):
 
     def criarUsuario(self, login, senha):
