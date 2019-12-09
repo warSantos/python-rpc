@@ -6,9 +6,15 @@ import hashlib
 from sys import argv, exit
 
 # Importando módulos locais.
-from base import get_opt
+#from base import get_opt
 
 class ServidorAutenticacao(rpyc.classic.ClassicService):
+
+    def ajuda(self):
+        print("Ajuda.")
+        print("-c: Endereço do servidor de conexões.")
+        print("-f: Endereço do servidor de arquivos.")
+        print("python3 src/conexoes_rpc.py -c IP -f IP")
 
     def criarUsuario(self, login, senha):
 
@@ -94,8 +100,16 @@ class ServidorAutenticacao(rpyc.classic.ClassicService):
 
 if __name__=='__main__':
 
-    hostname = argv[1]
-    servidor = ServidorAutenticacao()
+    #opts = get_opt(argv[1:], "c:f:", ServidorAutenticacao().ajuda)
+
+    # Pegando o IP dos servidores de arquivos e de conexão.
+    #ip_scon = opts['-c']
+    #ip_sarq = opts['-f']
+
+    hostname = '0.0.0.0'
+    porta = 8002
+
+    #servidor = ServidorAutenticacao()
     if hostname == 'root':
         servidor.criarUsuario(hostname, argv[2])
     else:

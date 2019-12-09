@@ -221,7 +221,7 @@ class ServidorConexoes():
             print(str(err))
             exit(1)
 
-    def menu(self, socket_cliente):
+    def menu(self, socket_cliente, ip_saut, ip_sftp):
         try:
             # Criando contexto ssl para tunelamento do socket.
             context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
@@ -300,12 +300,12 @@ class ServidorConexoes():
             print(str(err))
             exit(1)
 
-    def iniciarServidor(self, ip_servidor_con, ip_servidor_ftp):
+    def iniciarServidor(self, ip_saut, ip_sftp):
 
         # Criando pool de processos para armazenar as conexões. Pode armazenar 20 clientes por vez.
         pool_clientes = Pool(20)
 
-        ip_escuta = '127.0.0.1'
+        ip_escuta = '0.0.0.0'
         porta = 8000
 
         # Iniciando socket de recepção de novas conexões.
@@ -326,7 +326,7 @@ class ServidorConexoes():
             #socket_cliente, addr = socket_conexao.accept()
             novo_sock, addr = socket_conexao.accept()
             # Inicia uma nova thread para atender o novo cliente.
-            res = pool_clientes.apply_async(self.menu, (novo_sock,))
+            res = pool_clientes.apply_async(self.menu, (novo_sock, ip_saut, ip_sftp))
             resultados.append(res)
 
         # Fechando socket de escuta.

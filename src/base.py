@@ -8,10 +8,12 @@ def get_opt(texto, parametros, funcao_help):
         dir_opts = {}
         if len(opts) == 0:
             funcao_help()
+            exit(1)
         # Construindo dicionário de parâmetros.
         for par in opts:
             if par[0] == '-h':
                 funcao_help()
+                exit(1)
             dir_opts[par[0]] = par[1]
         return dir_opts
     except getopt.GetoptError as err:

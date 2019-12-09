@@ -11,14 +11,6 @@ from base import permissao_acesso, get_opt
 
 class ServidorArquivos(rpyc.classic.ClassicService):
 
-    """
-    def __init__(self, ip_saut, ip_scon):
-        self.ip_saut = ip_saut
-        self.ip_scon = ip_scon
-    
-    def __call__(self, conn):
-        return self.__class__(self.ip_saut, self.ip_scon)
-    """
     def criarHome(self, caminho):
 
         homedir = 'home/'+caminho
@@ -377,14 +369,15 @@ class ServidorArquivos(rpyc.classic.ClassicService):
 
 if __name__ == '__main__':
 
-    opts = get_opt(argv[1:], "a:c:", help)
+    #opts = get_opt(argv[1:], "a:c:", help)
     
     # Pegando o IP dos servidores de arquivos e de conexão.
-    ip_saut = opts['-a']
-    ip_scon = opts['-c']
+    #ip_saut = opts['-a']
+    #ip_scon = opts['-c']
 
     hostname='0.0.0.0'
     porta=8001
+
     aut=rpyc.utils.authenticators.SSLAuthenticator('certificados/no.pwd.server.key', \
         'certificados/server.crt', ssl_version=ssl.PROTOCOL_TLSv1_2)
     servidor=rpyc.ForkingServer(ServidorArquivos,

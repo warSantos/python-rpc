@@ -9,14 +9,14 @@ from sys import argv, exit
 
 class ServidorConexeosRPC(rpyc.classic.ClassicService):
 
-    def help(self):
+    def ajuda(self):
         print("Ajuda.")
         print("-c: Endereço do servidor de conexões.")
         print("-f: Endereço do servidor de arquivos.")
         print("python3 src/conexoes_rpc.py -c IP -f IP")
 
     # Auntentica usuário no servidor de autenticação.
-    def autenticar(self, login, senha, hostname="127.0.0.1", porta=8002):
+    def autenticar(self, login, senha, hostname="192.168.0.109", porta=8002):
         resumo = hashlib.sha256(senha.encode()).hexdigest()
         conexao = ServidorConexeosRPC().conectar(hostname, porta)
         return conexao.root.autenticar(login, resumo)
@@ -24,9 +24,9 @@ class ServidorConexeosRPC(rpyc.classic.ClassicService):
     # Abrea conexão com um servidor RPC (arquivos ou autenticação).
     # Por padrão esta definido a porta utilizada pelo servidor de arquivos
     # em testes com uma máquina apenas.
-    def conectar(self, hostname="127.0.0.1", porta=8001):
-        return rpyc.classic.ssl_connect(hostname, porta,
-                                        ssl_version=ssl.PROTOCOL_TLSv1_2)
+    def conectar(self, hostname="192.168.0.109", porta=8001):
+        return rpyc.classic.ssl_connect(hostname, porta, \
+            ssl_version=ssl.PROTOCOL_TLSv1_2)
 
     # Navega entre os diretórios do usuário.
     def cd(self, conexao, caminho, usuario):
