@@ -9,6 +9,10 @@ from sys import argv, exit
 
 class ServidorConexeosRPC(rpyc.classic.ClassicService):
 
+    # Recebe diretório onde o sistema de arquivos esta funcionando.
+    def os_path(self, conexao):
+        return conexao.root.os_path()
+
     # Auntentica usuário no servidor de autenticação.
     def autenticar(self, login, senha, hostname="192.168.0.109", porta=8002):
         resumo = hashlib.sha256(senha.encode()).hexdigest()

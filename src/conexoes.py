@@ -15,7 +15,7 @@ from conexoes_rpc import ServidorConexeosRPC
 
 class ServidorConexoes():
 
-    def auntenticar(self, conn):
+    def auntenticar(self, conn, ip_saut, ip_sftp):
 
         try:
             tentativas = 3
@@ -41,7 +41,7 @@ class ServidorConexoes():
                         conn.send(r_json.encode())
                     else:
                         r_json = servidor_rpc_aut.autenticar(
-                            comandos[0], comandos[1])
+                            comandos[0], comandos[1], hostname=ip_saut)
                         resposta = json.loads(r_json)
                         # Se a conexão foi realizada com sucesso.
                         if resposta['aceito']:
@@ -49,9 +49,13 @@ class ServidorConexoes():
                             # Configurando o usuário.
                             usuario.login = comandos[0]
                             usuario.status = True
-                            usuario.dir_corrente = os.getcwd()+'/home/'+comandos[0]
-                            usuario.dir_padrao = os.getcwd()+'/home/'+comandos[0]
-                            resposta['user_home'] = os.getcwd()+'/home/'+comandos[0]
+                            # Buscando caminho base para home no servidor de arquivos.
+                            sftp = ServidorConexeosRPC()
+                            conn_ftp = sftp.conectar(hostname=ip_sftp)
+                            cbase = sftp.os_path(conn_ftp)
+                            usuario.dir_corrente = cbase+'/home/'+comandos[0]
+                            usuario.dir_padrao = cbase+'/home/'+comandos[0]
+                            resposta['user_home'] = cbase+'/home/'+comandos[0]
                             conn.send(json.dumps(resposta).encode())
                             break
                         else:
@@ -231,10 +235,10 @@ class ServidorConexoes():
             print("Iniciando servidor de escuta do cliente.", conn.getpeername())
             servidor = ServidorConexoes()
             # Autenticando o usuário.
-            usuario = servidor.auntenticar(conn)
+            usuario = servidor.auntenticar(conn, ip_saut, ip_sftp)
             # Conectando o servidor de arquivos.
             servidor_rpc_ftp = ServidorConexeosRPC()
-            conn_rpc_ftp = servidor_rpc_ftp.conectar()
+            conn_rpc_ftp = servidor_rpc_ftp.conectar(hostname=ip_sftp)
             # Alterando o diretório do usuário no servidor de arquivos para a home dele.
             servidor.cd(conn, usuario, servidor_rpc_ftp, \
                             conn_rpc_ftp, ["cd", usuario.dir_padrao])

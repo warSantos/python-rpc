@@ -11,6 +11,9 @@ from base import permissao_acesso, get_opt
 
 class ServidorArquivos(rpyc.classic.ClassicService):
 
+    def os_path(self):
+        return os.getcwd()
+
     def criarHome(self, caminho):
 
         homedir = 'home/'+caminho
