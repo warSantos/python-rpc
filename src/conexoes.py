@@ -336,7 +336,7 @@ class ServidorConexoes():
         pool_clientes.close()
         pool_clientes.join()
 
-    def help(self):
+    def ajuda(self):
         print("Ajuda.")
         print("-c: Endereço do servidor de conexões.")
         print("-f: Endereço do servidor de arquivos.")
@@ -345,6 +345,6 @@ class ServidorConexoes():
 
 if __name__ == '__main__':
 
-    opts = get_opt(argv[1:], "c:f:", help)
     servidor = ServidorConexoes()
+    opts = get_opt(argv[1:], "c:f:", servidor.ajuda)
     servidor.iniciarServidor(opts['-c'], opts['-f'])

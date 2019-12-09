@@ -12,9 +12,6 @@ from base import get_opt
 
 class Cliente():
 
-    def criarUsuario(self):
-        print("Olá.")
-
     def menu(self, ip_servidor_con):
 
         # Abrindo conexão com o servidor.
@@ -151,6 +148,6 @@ class Cliente():
 if __name__ == '__main__':
 
     # Recebendo parâmetros de entrada.
-    opts = get_opt(argv[1:], "c:",Cliente().ajuda)
     clnt = Cliente()
+    opts = get_opt(argv[1:], "c:", clnt.ajuda)
     clnt.menu(opts['-c'])
