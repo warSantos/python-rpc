@@ -226,6 +226,28 @@ class ServidorConexoes():
             print(str(err))
             exit(1)
 
+    def useradd(self, conn, ip_saut, ip_sftp, comandos):
+        
+        comandos.pop(0)
+        data = {}
+        data['comando'] = 'useradd'
+        if len(comandos) < 2:
+            data['sucesso'] = False
+            data['conteudo'] = "useradd: error: Quantidade de parâmetros "+\
+                "insuficiente. Por favor digite o login e depois a senha."+\
+                " Após a senha digite True se quiser criar o usuário com "+\
+                "privilégios de root."
+            conn.send(json.dumps(data).encode())
+        else:
+            servidor = ServidorConexeosRPC()
+            conn_saut = servidor.conectar(ip_saut, 8002)
+            perm = False
+            if len(comandos) == 3:
+                perm = comandos[2]
+            data = servidor.useradd(conn_saut, comandos[0], comandos[1], ip_sftp, \
+                root_perm=perm)
+            conn.send(data.encode())
+
     def menu(self, socket_cliente, ip_saut, ip_sftp):
         try:
             # Criando contexto ssl para tunelamento do socket.
@@ -289,6 +311,16 @@ class ServidorConexoes():
                     elif comandos[0] == 'rmdir':
                         servidor.rmdir(conn, usuario, servidor_rpc_ftp, \
                             conn_rpc_ftp, comandos)
+                    elif comandos[0] == 'useradd':
+                        # Se o usuário tiver poder de root.
+                        if usuario.grupo_root:
+                            servidor.useradd(conn, ip_saut, ip_sftp, comandos)
+                        else:
+                            resposta = {
+                                "comando": "useradd",
+                                "conteudo": "useradd: error: permissão negada."
+                            }
+                            conn.send(json.dumps(resposta).encode())
                     # Retorna erro (comando não encontrado).
                     else:
                         resposta = {

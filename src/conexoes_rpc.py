@@ -89,8 +89,5 @@ class ServidorConexeosRPC(rpyc.classic.ClassicService):
     def rm(self, conexao, caminho, usuario):
         return conexao.root.rm(caminho, usuario.usuario_json())
 
-
-if __name__ == "__main__":
-    servidor = ServidorConexeosRPC()
-    conexao = servidor.conectar("localhost", "8002")
-    print(servidor.rm(conexao, "home/root/diretorio"))
+    def useradd(self, conexao, login, senha, ip_sftp, root_perm=False):
+        return conexao.root.useradd(login, senha, ip_sftp, root_perm)

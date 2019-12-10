@@ -4,6 +4,7 @@ import rpyc
 import json
 import hashlib
 from sys import argv, exit
+from conexoes_rpc import ServidorConexeosRPC
 
 # Importando módulos locais.
 #from base import get_opt
@@ -16,36 +17,47 @@ class ServidorAutenticacao(rpyc.classic.ClassicService):
         print("-f: Endereço do servidor de arquivos.")
         print("python3 src/conexoes_rpc.py -c IP -f IP")
 
-    def criarUsuario(self, login, senha):
+    def useradd(self, login='', senha='', ip_sftp='127.0.0.1', \
+        root_perm=False):
 
+        data = {}
+        data['comando'] = 'useradd'
         if login == '' or senha == '':
-            return ("O usuário e a senha não podem ser vazios.")
+            data['sucesso'] = False
+            data['conteudo'] = "O usuário e a senha não podem ser vazios."
         if len(login) > 50:
-            print("O login deve conter no máximo 50 caracteres.")
-            return ("O login deve conter no máximo 50 caracteres.")
+            data['sucesso'] = False
+            data['conteudo'] = "O login deve conter no máximo 50 caracteres."
         else:
             # Verificando se o login contém caracteres especiais.
             regex = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
             if regex.search(login) != None:
-                print("O login deve conter somente letras e números.")
-                return ("O login deve conter somente letras e números.")
+                data['sucesso'] = False
+                data['conteudo'] = "O login deve conter somente letras e números."
             # Verificando se o login já existe na base de dados.
             pt = open('banco/logins.txt', 'r')
             for tupla in pt:
-                usuario, senha = tupla.split(':')
+                usuario, senha, _ = tupla.split(':')
                 if usuario == login:
-                    print("Este login já foi tomando.")
-                    return ("Este login já foi tomado.")
+                    data['sucesso'] = False
+                    data['conteudo'] = "Este login já foi tomado."
+                    return json.dumps(data)
             pt.close()
             # Persistindo o usuário no disco.
             pt = open('banco/logins.txt', 'a')
-            pt.write(login+':'+hashlib.sha256(senha.encode()).hexdigest()+'\n')
+            pt.write(login+':'+senha+\
+                ':'+str(root_perm)+'\n')
             pt.close()
 
             # Criando home do usuário.
-            conexao = rpyc.connect('127.0.0.1', '8002')
-            print(conexao.root.criarHome(login))
-            print("Usuário: "+login+" pronto para uso.")
+            sftp = ServidorConexeosRPC()
+            conn_sftp = sftp.conectar(ip_sftp)
+            conn_sftp.root.criarHome(login)
+
+            data['sucesso'] = True
+            data['conteudo'] = "Usuário: "+login+" pronto para uso."+\
+                "Permissão de root: "+str(root_perm)
+        return json.dumps(data)
 
     # Converte um dicionário de autenticação em um json string.
     def encode_aut(self, conteudo, aceito=False, perm=False):
@@ -117,7 +129,7 @@ if __name__=='__main__':
 
     #servidor = ServidorAutenticacao()
     if hostname == 'root':
-        servidor.criarUsuario(hostname, argv[2])
+        servidor.useradd(hostname, argv[2])
     else:
         aut = rpyc.utils.authenticators.SSLAuthenticator( \
             'certificados/no.pwd.server.key', \

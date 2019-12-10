@@ -121,6 +121,8 @@ class Cliente():
             # Interpreta o retorno do comando rmdir.
             elif retorno['comando'] == 'rmdir':
                 print(retorno['conteudo'])
+            elif retorno['comando'] == 'useradd':
+                print(retorno['conteudo'])
             # Trata entrada de comandos inexistentes.
             else:
                 print(retorno['conteudo'])
