@@ -126,13 +126,9 @@ if __name__=='__main__':
     hostname = '0.0.0.0'
     porta = 8002
 
-    #servidor = ServidorAutenticacao()
-    if hostname == 'root':
-        servidor.useradd(hostname, argv[2])
-    else:
-        aut = rpyc.utils.authenticators.SSLAuthenticator( \
-            'certificados/no.pwd.server.key', \
-            'certificados/server.crt', ssl_version=ssl.PROTOCOL_TLSv1_2)
-        servidor = rpyc.ForkingServer(ServidorAutenticacao, \
-            hostname=hostname, port=porta, authenticator=aut)
-        servidor.start()
+    aut = rpyc.utils.authenticators.SSLAuthenticator( \
+        'certificados/no.pwd.server.key', \
+        'certificados/server.crt', ssl_version=ssl.PROTOCOL_TLSv1_2)
+    servidor = rpyc.ForkingServer(ServidorAutenticacao, \
+        hostname=hostname, port=porta, authenticator=aut)
+    servidor.start()
