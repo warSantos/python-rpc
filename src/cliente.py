@@ -24,7 +24,6 @@ class Cliente():
             #texto = "login welton 123"
             socket_con.send(texto.encode())
             data = socket_con.recv(1024)
-            print(data)
             if not data:
                 print("Conexão fechada pelo servidor.")
                 exit(1)
@@ -55,7 +54,6 @@ class Cliente():
                 exit(1)
                 socket_con.close()
             # Lendo retorno do servidor.
-            print(data)
             retorno = json.loads(data.decode())
             # Interpreta o retorno do comando cd.
             if retorno['comando'] == 'cd':
@@ -63,11 +61,6 @@ class Cliente():
                     usuario.dir_corrente = retorno['conteudo']
                 else:
                     print(retorno['conteudo'])
-            # Interpreta o retorno do comando disconectar
-            # (vê se o server fechou também).
-            elif retorno['comando'] == 'disconectar':
-                print("Ola.")
-                exit(0)
             # Interpreta o retorno do comando get.
             elif retorno['comando'] == 'get':
                 # Se o arquivo existe e pode ser baixado.

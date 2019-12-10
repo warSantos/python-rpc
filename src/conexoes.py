@@ -56,7 +56,6 @@ class ServidorConexoes():
                             usuario.dir_corrente = cbase+'/home/'+comandos[0]
                             usuario.dir_padrao = cbase+'/home/'+comandos[0]
                             usuario.grupo_root = resposta['grupo_root']
-                            print("GROOT: ", usuario.grupo_root)
                             resposta['user_home'] = cbase+'/home/'+comandos[0]
                             conn.send(json.dumps(resposta).encode())
                             break
@@ -274,7 +273,6 @@ class ServidorConexoes():
                     conn.close()
                     exit(1)
                 else:
-                    print(data)
                     texto = data.decode()
                     comandos = texto.split()
                     # Faz chamada de função do cd no servidor de RPC de arquivos.

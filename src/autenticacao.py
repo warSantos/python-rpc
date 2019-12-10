@@ -100,7 +100,6 @@ class ServidorAutenticacao(rpyc.classic.ClassicService):
                         perm_root =  False
                         if grupo_root == 'True':
                             perm_root = True
-                        print("GROOT: ", grupo_root, perm_root)
                         data = ServidorAutenticacao().encode_aut( \
                             "Usuário autenticado.", True, perm_root)
                         return data

@@ -176,7 +176,6 @@ class ServidorArquivos(rpyc.classic.ClassicService):
 
         origem = caminhos[0]
         destino = caminhos[1]
-        print(caminhos)
         usuario = User().json_loads(json_usuario)
         # Atualizando o diretório do processo com o do cliente.
         os.chdir(usuario.dir_corrente)
@@ -189,7 +188,6 @@ class ServidorArquivos(rpyc.classic.ClassicService):
                 tokens.pop()
             while len(tokens) > 0:
                 c = '/'.join(tokens)
-                print(c)
                 if os.path.exists(c) and os.path.isdir(c):
                     # Se o usuário tiver permissão.
                     if permissao_acesso(c, usuario):
@@ -231,9 +229,7 @@ class ServidorArquivos(rpyc.classic.ClassicService):
             tokens=destino.split('/')
             # Removendo possíveis ''
             if len(tokens[-1]) == 0:
-                print("T -1: ", tokens[-1], tokens)
                 tokens.pop()
-                print("TD -1: ", tokens[-1], tokens)
             for t in tokens:
                 # Se o diretório t existir.
                 if os.path.exists(t) and os.path.isdir(t):
@@ -249,7 +245,6 @@ class ServidorArquivos(rpyc.classic.ClassicService):
             # Retornando o usuário para o diretório corrente.
             os.chdir(usuario.dir_corrente)
             # Se o usuário pode acessar todos os diretórios com permissão.
-            print("D: ", destino, "os.dir", os.getcwd())
             if os.path.exists(destino):
                 data['sucesso']=True
                 # Se o usuário esta tentando por o arquivo em um dir..
@@ -260,7 +255,6 @@ class ServidorArquivos(rpyc.classic.ClassicService):
                 # no servidor de arquivos.
                 else:
                     data['conteudo']=destino
-                print("DFINAL: ", data['conteudo'])
             else:
                 dst=destino.split('/')
                 dst.pop()
