@@ -30,7 +30,7 @@ class ServidorAutenticacao(rpyc.classic.ClassicService):
             data['conteudo'] = "O login deve conter no máximo 50 caracteres."
         else:
             # Verificando se o login contém caracteres especiais.
-            regex = re.compile('[@_!#$%^&*()<>?/\|}{~:]')
+            regex = re.compile("[@_!#$%^&*()<>?/\|}{~:]'\"")
             if regex.search(login) != None:
                 data['sucesso'] = False
                 data['conteudo'] = "O login deve conter somente letras e números."
@@ -56,7 +56,7 @@ class ServidorAutenticacao(rpyc.classic.ClassicService):
 
             data['sucesso'] = True
             data['conteudo'] = "Usuário: "+login+" pronto para uso."+\
-                "Permissão de root: "+str(root_perm)
+                " Permissão de root: "+str(root_perm)
         return json.dumps(data)
 
     # Converte um dicionário de autenticação em um json string.
