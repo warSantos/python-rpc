@@ -2,6 +2,7 @@ import re
 import ssl
 import rpyc
 import json
+import base
 import hashlib
 from sys import argv, exit
 from conexoes_rpc import ServidorConexeosRPC
@@ -34,7 +35,9 @@ class ServidorAutenticacao(rpyc.classic.ClassicService):
             if regex.search(login) != None:
                 data['sucesso'] = False
                 data['conteudo'] = "O login deve conter somente letras e números."
+            
             # Verificando se o login já existe na base de dados.
+            """
             pt = open('banco/logins.txt', 'r')
             for tupla in pt:
                 usuario, senha, _ = tupla.split(':')
@@ -43,11 +46,15 @@ class ServidorAutenticacao(rpyc.classic.ClassicService):
                     data['conteudo'] = "Este login já foi tomado."
                     return json.dumps(data)
             pt.close()
-            # Persistindo o usuário no disco.
-            pt = open('banco/logins.txt', 'a')
-            pt.write(login+':'+senha+\
-                ':'+str(root_perm)+'\n')
-            pt.close()
+            """
+            resultado = base.mysql_select_user(login)
+            if len(resultado) > 0:
+                data['sucesso'] = False
+                data['conteudo'] = "Este login já foi tomado."
+                return json.dumps(data)
+            # Inserindo usuário na base de dados.
+            resumo = hashlib.sha256(senha.encode()).hexdigest()
+            base.mysql_insert_user(login, resumo, root_perm)
 
             # Criando home do usuário.
             sftp = ServidorConexeosRPC()
@@ -90,6 +97,7 @@ class ServidorAutenticacao(rpyc.classic.ClassicService):
                 data = ServidorAutenticacao().encode_aut( \
                 "O login deve conter somente letras e números.")
                 return data
+            """
             pt = open('banco/logins.txt', 'r')
             for tupla in pt:
                 usuario, resumo_bd, grupo_root = tupla.replace('\n','').split(':')
@@ -108,10 +116,25 @@ class ServidorAutenticacao(rpyc.classic.ClassicService):
                             "Falha na aunteticação. Senha incorreta.")
                         return data
             pt.close()
-            data = ServidorAutenticacao().encode_aut( \
-                "Falha na autenticação. Usário inexistente.")
-            return data
-
+            """
+            resultado = base.mysql_select_user(login)
+            if len(resultado) == 0:
+                data = ServidorAutenticacao().encode_aut( \
+                    "Falha na autenticação. Usário inexistente.")
+                return data
+            else:
+                if resultado[0][1] == resumo:
+                    perm_root =  False
+                    if resultado[0][2] == 1:
+                        perm_root = True
+                    data = ServidorAutenticacao().encode_aut( \
+                        "Usuário autenticado.", True, perm_root)
+                    return data
+                else:
+                    data = ServidorAutenticacao().encode_aut( \
+                        "Falha na aunteticação. Senha incorreta.")
+                    return data
+            
     def teste(self):
         return "Servidor de autenticação funcionando corretamente."
 

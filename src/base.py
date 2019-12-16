@@ -1,5 +1,6 @@
 import os
 import getopt
+import pymysql
 from sys import argv, exit
 
 def get_opt(texto, parametros, funcao_help):
@@ -39,3 +40,30 @@ def permissao_acesso(caminho, usuario):
     if novo_dir.find(usuario.dir_padrao) == 0:
         return True
     return False
+
+def mysql_conn():
+    
+    return pymysql.connect("localhost","root","rootroot","logins")
+
+def mysql_select_user(login=None):
+
+    if login is None:
+        return False
+    
+    db = mysql_conn()    
+    cursor = db.cursor()
+    sql = "SELECT * FROM usuarios WHERE login = '" + login + "';"
+    result = cursor.execute(sql)
+    result = cursor.fetchall()
+    db.close()
+    return result
+
+def mysql_insert_user(login, resumo, grupo_root):
+
+    db = mysql_conn()    
+    cursor = db.cursor()
+    sql = "INSERT INTO usuarios(login, senha, grupo_root) VALUES "+\
+    "('"+login+"', '"+resumo+"', "+str(grupo_root)+")"
+    cursor.execute(sql)
+    db.commit()
+    db.close()
